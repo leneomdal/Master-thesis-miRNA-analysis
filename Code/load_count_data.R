@@ -6,16 +6,19 @@ path = "C:\\Users\\Lene\\Documents\\Skole\\Prosjektoppgave\\project-thesis-mirna
 #Read the data
 count.data <- read.csv(paste0(path, "MatureMatrix.csv"),sep="\t", header =T,row.names=1)
 sample.sheet<-read.table(paste0(path,"SampleSheet.txt"),sep="\t", header=T)
-
+#View(count.data)
 #Remove "X" from colnames
 colnames(count.data) = str_remove(colnames(count.data), "[X]")
+
+#Remove "Hsa from miRNa names
+rownames(count.data) = str_remove(rownames(count.data), "hsa-")
 
 #Check for missing values
 sum(is.na(sample.sheet) == TRUE)# Two samples missing value for sens2yrs, row 16 and 64
 
 #Check for same samples and same ordering in count matrix and sample sheet
 count.data<-count.data[,order(as.numeric(colnames(count.data)))]
-sum(colnames(count.data) == sample.sheet$samples)
+sum(colnames(count.data) != sample.sheet$samples)
 
 
 
@@ -52,6 +55,7 @@ for(i in 1:ncol(ten.days.sample.df)){
     print("not present!")
   }
 }
+
 
 count.df = ten.days.sample.df
 metadata.df = ten.days.meta.data

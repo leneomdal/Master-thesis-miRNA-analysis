@@ -12,6 +12,7 @@ lcpm.km.cluster = k.m$cluster
 # non-scaled values
 log.cpm.kmeans = kmeans(t(log.cpm), 2)
 log.cpm.km.cluster = log.cpm.kmeans$cluster
+?kmeans
 
 # K-means clustering on deseqs rlog transformed data
 
@@ -80,5 +81,9 @@ biplot(x = rld_pca$x[,1:2], y= rld_informative_loadings, scale=0)
 plot(rld_pca$x[,1:2], type = "n")
 points(rld_pca$x[groups_p == "P", 1:2], pch = "P", col = (rld.kmeans.cluster+1)[groups_p == "P"]) 
 points(rld_pca$x[groups_p == "nP", 1:2], pch = "N", col = (rld.kmeans.cluster+1)[groups_p == "nP"])
+
+
+
+
 
 

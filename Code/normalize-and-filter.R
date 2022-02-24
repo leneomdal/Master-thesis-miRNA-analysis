@@ -28,7 +28,7 @@ cpm <- cpm(dge)
 dim(cpm)
 
 
-# log spm
+# log cpm
 log.cpm = cpm(dge, log = TRUE)
 
 
