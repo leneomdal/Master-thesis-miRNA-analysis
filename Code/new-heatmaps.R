@@ -50,10 +50,9 @@ clust.s.euclid = hclust(dist(t(log.cpm)), method = "ward.D2")
 
 
 
-# ved å inkludere de to over beholder jge den originale clusteringen men skalerer verdiene i plottet
+# ved å inkludere de to over beholder jeg den originale clusteringen men skalerer verdiene i plottet
 pheatmap(log.cpm,
-         col = colors, scale = "row", cluster_rows = clust.m.euclid,
-         cluster_cols = clust.s.euclid,
+         col = colors, scale = "row",
          clustering_distance_rows = "euclidean", clustering_distance_cols = "euclidean", 
          clustering_method = "ward.D2", annotation_col = sample.col, show_rownames = FALSE,
          main = "Heatmap of log cpm values using euclidian distance", show_colnames = FALSE,
@@ -81,8 +80,7 @@ pheatmap(log.cpm, color = colors, scale = "row",  border_color = NA,
 clust.m.abs.cor = hclust(as.dist(1-abs(cor.mirna)), method = "ward.D2")
 clust.s.abs.cor = hclust(as.dist(1-abs(cor.samples)), method = "ward.D2")
 #plot 1-abs(cor) distance
-pheatmap(log.cpm, scale = "row", border_color = NA, cluster_rows = clust.m.abs.cor,
-         cluster_cols = clust.s.abs.cor,
+pheatmap(log.cpm, scale = "row", border_color = NA, 
          clustering_distance_rows = as.dist(1-abs(cor.mirna)), 
          clustering_distance_cols = as.dist(1- abs(cor.samples)), 
          clustering_method = "ward.D2", annotation_col = sample.col, show_rownames = FALSE,
