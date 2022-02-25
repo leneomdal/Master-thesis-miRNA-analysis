@@ -6,20 +6,15 @@ library(DESeq2)
 
 #Make dge object
 dge <- DGEList(counts=count.df)
+dim(dge)
 
+# Filtering out miRNAs with cpm value less than 1 in 30 or less of the samples
 
-#Filtering
-keep = rowSums(dge$counts>3)>=3
+keep = rowSums(cpm(dge)>1)>=10
 dge$counts = dge$counts[keep,]
 dim(dge)
 sum(keep)
 
-
-#keep = rowSums(dge$counts)>5
-#sum(keep)
-#dge$counts = dge$counts[keep,]
-#dim(dge$counts)
-#dim(count.df)
 
 # normalize using TMM normalization
 dge = calcNormFactors(dge, method = "TMM")
