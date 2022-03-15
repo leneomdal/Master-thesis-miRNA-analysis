@@ -12,8 +12,6 @@ plot(rowMeans(scaled.log.cpm))
 
 
 
-
-
 # Histogram of cpm values for miRNA  7 and 84
 df.mirna = data.frame(mirna7 = cpm[7,], mirna80 = cpm[84,])
 rownames(cpm)[84]
@@ -42,5 +40,15 @@ dev.off()
 svg("C:\\Users\\Lene\\Documents\\Skole\\Master\\Master-thesis-miRNA-analysis\\Figures\\histogram-log-cpm-mirna84.svg")
 ggplot(df.log.mirna, aes(x= mirna80)) + geom_histogram(binwidth=0.2, fill="#69b3a2", color="#e9ecef", alpha=0.9) + 
   ggtitle("Histogram of miR-135a-5p log cpm values") + xlab("log cpm values") + ylab("Count")
+dev.off()
+
+
+
+# HISTOGRAM OF MEAN VALUES OF MIRNA
+
+mean.mirnas.df = data.frame(means = rowMeans(log.cpm))
+svg("C:\\Users\\Lene\\Documents\\Skole\\Master\\Master-thesis-miRNA-analysis\\Figures\\histogram-mean-mirna.svg")
+ggplot(mean.mirnas.df, aes(x = means)) + geom_histogram(binwidth=1, fill="#69b3a2", color="#e9ecef", alpha=0.9) + 
+  ggtitle("Histogram of mean miRNA values") + xlab("log cpm values") + ylab("Count")
 dev.off()
 

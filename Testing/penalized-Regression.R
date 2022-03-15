@@ -39,7 +39,6 @@ best.lambda.lasso = cv.out$lambda.min
 
 
 # CV biglasso
-
 cv.fit.lcpm.lasso = cv.biglasso(X.cpm, as.numeric(as.character(metadata.df$ad)), family = "binomial", 
                      seed = 1234, nfolds = 10, ncores = 8)
 par(mfrow = c(2, 2), mar = c(3.5, 3.5, 3, 1) ,mgp = c(2.5, 0.5, 0))
@@ -49,6 +48,7 @@ cvfit <- cv.biglasso(X.cpm, as.numeric(as.character(metadata.df$ad)), family = "
                      penalty = "enet", alpha = 0.5, seed = 1234, nfolds = 10, ncores = 4)
 par(mfrow = c(2, 2), mar = c(3.5, 3.5, 3, 1), mgp = c(2.5, 0.5, 0))
 plot(cvfit, type = "all")
+
 
 
 
@@ -64,7 +64,7 @@ cv.fit.lcpm.lasso$min
 best.lc.lasso.lcpm = cv.fit.lcpm.lasso$fit$beta[, cv.fit.lcpm.lasso$min]
 best.lc.lasso.lcpm
 View(log.cpm)
-
+which(best.lc.lasso.lcpm != 0)
 
 sum(names(best.lc.lasso.lcpm[-1]) != row.names(log.cpm))
 
