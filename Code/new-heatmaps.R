@@ -29,24 +29,26 @@ as.dendrogram(hclust.mirna) %>% plot(horiz = TRUE)
 
 
 mirna.col = cutree(tree = as.dendrogram(hclust.mirna), k = 4)
-mirna.col
 #mirna.col = data.frame(cluster= ifelse(mirna.col == 1, "cluster 1", "cluster 2"))
 groups_sex = ifelse(metadata.df$sex == 1, "boy", "girl")
 
 probiotic.groups = ifelse(metadata.df$probiotic == 1, "Probiotic", "Placebo")
 ad.groups = ifelse(metadata.df$ad == 1, "AD", "No AD")
-mad.groups = ifelse(metadata.df$matatopy == 1, "Maternal AD", "No maternal AD")
+mad.groups = ifelse(metadata.df$matatopy == 1, "Maternal atopy", "No maternal atopy")
 
 sample.col = data.frame(Supplement = probiotic.groups, Atopic.dermatitis = ad.groups, 
                         Maternal.atopy = mad.groups)
-head(mirna.col)
-head(sample.col)
+
 rownames(sample.col) = colnames(log.cpm)
 
 
 # Heatmap using euclidian distance
-clust.m.euclid = hclust(dist(log.cpm), method = "ward.D2")
-clust.s.euclid = hclust(dist(t(log.cpm)), method = "ward.D2")
+clust.m.euclid = hclust(dist(t(scale(t(log.cpm)))), method = "ward.D2")
+clust.s.euclid = hclust(dist(scale(t(log.cpm))), method = "ward.D2")
+View(t(scale(t(log.cpm))))
+
+plot(clust.s.euclid)
+as.dendrogram(clust.s.euclid) %>% plot()
 
 
 
@@ -60,20 +62,20 @@ pheatmap(log.cpm,
 
 
 # calculate correlation between miRNAs and samples
-cor.mirna = cor(t(log.cpm))
-cor.samples = cor(log.cpm)
+cor.mirna = cor(scale(t(log.cpm)))
+cor.samples = cor(t(scale(t(log.cpm))))
 
 
 # Heatmap using cor based disance !!!! 1-cor !!!!
 clust.m.cor = hclust(as.dist(1-cor.mirna), method = "ward.D2")
 clust.s.cor = hclust(as.dist(1-cor.samples), method = "ward.D2")
-plot(clust.s.cor)
+
 pheatmap(log.cpm, color = colors, scale = "row",  border_color = NA, 
-         cluster_rows = clust.m.cor, cluster_cols = clust.s.cor,
          clustering_distance_rows = "correlation", clustering_distance_cols = "correlation",
          clustering_method = "ward.D2", annotation_col = sample.col, show_rownames = FALSE,
          show_colnames = FALSE,
          main = "Heatmap of log cpm values using 1 - correlation distance", fontsize = 7)
+
 
 
 
@@ -89,13 +91,26 @@ pheatmap(log.cpm, scale = "row", border_color = NA,
          fontsize = 7)
 
 
-rld.clust.m = hclust(as.dist(1-abs(cor(t(assay(rld))))), method = "ward.D2")
-rld.clust.s = hclust(as.dist(1-abs(cor(assay(rld)))), method = "ward.D2")
+# Exploring the clusters
 
-pheatmap(assay(rld),  scale = "row", cluster_rows = rld.clust.m, cluster_cols = rld.clust.s,
-         clustering_distance_rows = as.dist(1-abs(cor.mirna)), 
-         clustering_distance_cols = as.dist(1- abs(cor.samples)), clustering_method = "ward.D2",
-         annotation_col = sample.col, show_rownames = FALSE, show_colnames = FALSE,
-         main = "Heatmap of reg log values using 1 - abs(correlation) distance", 
-         fontsize = 7, border_color = NA )
+#plot dendrogram
+as.dendrogram(clust.s.cor) %>% plot()
+as.dendrogram(clust.m.cor) %>% plot()
 
+# compare clusters of euclid and cor distance
+mirna.clusters.cor = cutree(tree = as.dendrogram(clust.m.cor), k = 2)
+mirna.cluster.euclid = cutree(tree = as.dendrogram(clust.m.euclid), k = 2)
+cluster.2.mirna.cor = which(mirna.clusters.cor == 2) 
+cluster.2.mirna.euclid = which(mirna.cluster.euclid == 2)
+difference = 0
+for(elm in cluster.2.mirna.euclid){
+  if(elm %in% cluster.2.mirna.cor){}
+  else{
+    difference = difference +1
+    print(elm)
+    
+  }
+}
+difference
+length(cluster.2.mirna.cor)
+length(cluster.2.mirna.euclid)
