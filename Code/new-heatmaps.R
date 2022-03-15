@@ -14,22 +14,10 @@ colors <- colorRampPalette( rev(brewer.pal(9, "RdYlBu")) )(255)
 mirna.clust = as.dendrogram(hclust(dist(log.cpm)))
 sample.clust = as.dendrogram(hclust(dist(t(log.cpm))))
 colSide <- brewer.pal(9, "Set1")[groups_ad]
-
-
-
-pheatmap(log.cpm, col = colors, scale = "none", 
-         clustering_distance_rows = "euclidean", clustering_distance_cols = "euclidean", 
-         clustering_method = "ward.D2")
-
-
 hclust.mirna = hclust(as.dist(1-abs(cor(t(log.cpm)))), method = "ward.D2")
-
-
 as.dendrogram(hclust.mirna) %>% plot(horiz = TRUE)
 
 
-mirna.col = cutree(tree = as.dendrogram(hclust.mirna), k = 4)
-#mirna.col = data.frame(cluster= ifelse(mirna.col == 1, "cluster 1", "cluster 2"))
 groups_sex = ifelse(metadata.df$sex == 1, "boy", "girl")
 
 probiotic.groups = ifelse(metadata.df$probiotic == 1, "Probiotic", "Placebo")
@@ -47,12 +35,7 @@ clust.m.euclid = hclust(dist(t(scale(t(log.cpm)))), method = "ward.D2")
 clust.s.euclid = hclust(dist(scale(t(log.cpm))), method = "ward.D2")
 View(t(scale(t(log.cpm))))
 
-plot(clust.s.euclid)
-as.dendrogram(clust.s.euclid) %>% plot()
 
-
-
-# ved å inkludere de to over beholder jeg den originale clusteringen men skalerer verdiene i plottet
 pheatmap(log.cpm,
          col = colors, scale = "row",
          clustering_distance_rows = "euclidean", clustering_distance_cols = "euclidean", 
@@ -77,8 +60,6 @@ pheatmap(log.cpm, color = colors, scale = "row",  border_color = NA,
          main = "Heatmap of log cpm values using 1 - correlation distance", fontsize = 7)
 
 
-
-
 clust.m.abs.cor = hclust(as.dist(1-abs(cor.mirna)), method = "ward.D2")
 clust.s.abs.cor = hclust(as.dist(1-abs(cor.samples)), method = "ward.D2")
 #plot 1-abs(cor) distance
@@ -91,26 +72,4 @@ pheatmap(log.cpm, scale = "row", border_color = NA,
          fontsize = 7)
 
 
-# Exploring the clusters
 
-#plot dendrogram
-as.dendrogram(clust.s.cor) %>% plot()
-as.dendrogram(clust.m.cor) %>% plot()
-
-# compare clusters of euclid and cor distance
-mirna.clusters.cor = cutree(tree = as.dendrogram(clust.m.cor), k = 2)
-mirna.cluster.euclid = cutree(tree = as.dendrogram(clust.m.euclid), k = 2)
-cluster.2.mirna.cor = which(mirna.clusters.cor == 2) 
-cluster.2.mirna.euclid = which(mirna.cluster.euclid == 2)
-difference = 0
-for(elm in cluster.2.mirna.euclid){
-  if(elm %in% cluster.2.mirna.cor){}
-  else{
-    difference = difference +1
-    print(elm)
-    
-  }
-}
-difference
-length(cluster.2.mirna.cor)
-length(cluster.2.mirna.euclid)
