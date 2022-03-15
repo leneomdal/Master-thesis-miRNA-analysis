@@ -5,22 +5,41 @@ library(DESeq2)
 # NORMALIZE WITH EDGER TO CPM AND LOG CPM
 
 #Make dge object
-dge <- DGEList(counts=count.df)
-dim(dge)
+dge.full <- DGEList(counts=count.df)
+dim(dge.full)
 
 # Filtering out miRNAs with cpm value less than 1 in 30 or less of the samples
+keep = rowSums(cpm(dge.full)>1)>=10
+dge.full$counts = dge.full$counts[keep,]
 
-keep = rowSums(cpm(dge)>1)>=10
-dge$counts = dge$counts[keep,]
-dim(dge)
-sum(keep)
+
+# Check for identical miRNAs that should be merged into one
+#equal.mirnas = data.frame(V1 = c(0,0))
+#i = 1
+#for(m in 1:(nrow(dge.full$counts)-1)){
+#  for(n in (m+1):nrow(dge.full$counts)){
+#    if(m != n & all(dge.full$counts[m,] == dge.full$counts[n,])){
+#      equal.mirnas[,i] = c(n,m)
+#      i = i+1
+#      print(paste(m,n))
+#    }
+#  }
+#}
+
+#Merge miRNA with identical expression and identical sequence
+#Rename
+rownames(dge.full$counts)[c(160, 426, 444, 449, 450, 461)] = c("miR-199a/b-3p", 
+                                                        "miR-500a/b-5p", "miR-517a/b-3p", 
+                                                        "miR-518d-5p-group", 
+                                                        "miR-518e-5p-group", "miR-520b/c-3p")
+#Delete duplicates
+dge = dge.full[-c(161, 428, 445, 463, 470, 456, 458, 466, 467, 462),]
 
 
 # normalize using TMM normalization
 dge = calcNormFactors(dge, method = "TMM")
 #Convert to cpm using TMM norm factors
 cpm <- cpm(dge)
-dim(cpm)
 
 
 # log cpm
@@ -62,4 +81,22 @@ groups_p = as.factor(treatment)
 groups_ad = as.factor(outcome)
 groups = as.factor(paste0(treatment,"_", outcome))
 groups_mad = as.factor(ifelse(metadata.df$matatopy == 1, "mAD", "no mAD"))
+
+
+
+
+# Check for identical miRNAs that should be merged into one
+#equal.mirnas = data.frame(V1 = c(0,0))
+#i = 1
+#for(m in 1:(nrow(dge.full$counts)-1)){
+#  for(n in (m+1):nrow(dge.full$counts)){
+#    if(m != n & all(dge.full$counts[m,] == dge.full$counts[n,])){
+#      equal.mirnas[,i] = c(n,m)
+#      i = i+1
+#      print(paste(m,n))
+#    }
+#  }
+#}
+
+
 
