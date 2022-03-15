@@ -38,10 +38,17 @@ for(i in 1:ncol(log.cpm.top.mirna)){
   }
 }
 
+probiotic.groups = ifelse(metadata.df$probiotic == 1, "Probiotic", "Placebo")
+ad.groups = ifelse(metadata.df$ad == 1, "AD", "No AD")
+mad.groups = ifelse(metadata.df$matatopy == 1, "Maternal atopy", "No maternal atopy")
+
+sample.col = data.frame(Supplement = probiotic.groups, Atopic.dermatitis = ad.groups, 
+                        Maternal.atopy = mad.groups)
+
 pheatmap(log.cpm.top.mirna, scale = "row", border_color = NA, 
-         clustering_distance_rows = as.dist(1-abs(cor.mirna.top)), 
-         clustering_distance_cols = as.dist(1- abs(cor.samples.top)), 
+         clustering_distance_rows = as.dist(1-(cor.mirna.top)), 
+         clustering_distance_cols = as.dist(1- (cor.samples.top)), 
          clustering_method = "ward.D2", annotation_col = sample.col, show_rownames = TRUE,
          show_colnames = FALSE,
-         main = "Heatmap of top miRNA using 1 - abs(correlation) distance",
+         main = "Heatmap of top miRNA using 1 - correlation distance",
          fontsize = 7)
