@@ -1,4 +1,5 @@
 source("Code//new-heatmaps.R")
+library(xtable)
 
 # Exploring the clusters
 
@@ -27,6 +28,11 @@ get.table.summary.clust = function(hclust.obj, k){
 table.euclid = get.table.summary.clust(clust.s.euclid, k = 4)
 table.cor = get.table.summary.clust(clust.s.cor, k = 5)
 table.abs.cor = get.table.summary.clust(clust.s.abs.cor, k = 5)
+
+# Generate table fro latex
+#xtable(table.euclid)
+#xtable(table.cor)
+#xtable(table.abs.cor)
 
 
 
