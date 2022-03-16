@@ -1,4 +1,5 @@
 source("Code//new-heatmaps.R")
+source("Code//heatmap-top-mirna.R")
 library(xtable)
 
 # Exploring the clusters
@@ -7,6 +8,7 @@ library(xtable)
 as.dendrogram(clust.s.euclid) %>% plot()
 as.dendrogram(clust.s.cor) %>% plot()
 as.dendrogram(clust.s.abs.cor) %>% plot()
+as.dendrogram(clust.s.top) %>% plot()
 plot(clust.s.abs.cor)
 
 
@@ -28,12 +30,13 @@ get.table.summary.clust = function(hclust.obj, k){
 table.euclid = get.table.summary.clust(clust.s.euclid, k = 4)
 table.cor = get.table.summary.clust(clust.s.cor, k = 5)
 table.abs.cor = get.table.summary.clust(clust.s.abs.cor, k = 5)
+table.top = get.table.summary.clust(clust.s.top, k = 3)
 
-# Generate table fro latex
+# Generate table for latex
 #xtable(table.euclid)
 #xtable(table.cor)
 #xtable(table.abs.cor)
-
+#xtable(table.top)
 
 
 
