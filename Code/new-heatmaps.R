@@ -26,14 +26,18 @@ mad.groups = ifelse(metadata.df$matatopy == 1, "Maternal atopy", "No maternal at
 
 sample.col = data.frame(Supplement = probiotic.groups, Atopic.dermatitis = ad.groups, 
                         Maternal.atopy = mad.groups)
-
 rownames(sample.col) = colnames(log.cpm)
 
+# Set annotations colors
+ann.colors = list(
+  Supplement = c(Placebo = "#BDFCC9", Probiotic = "#03A89E"),
+  Atopic.dermatitis = c(AD = "#8B4789",No.AD = "#87CEEB"),
+  Maternal.atopy = c(Maternal.atopy = "#FFA07A",No.maternal.atopy = "#1B9E77")
+)
 
 # Heatmap using euclidian distance
 clust.m.euclid = hclust(dist(t(scale(t(log.cpm)))), method = "ward.D2")
 clust.s.euclid = hclust(dist(scale(t(log.cpm))), method = "ward.D2")
-View(t(scale(t(log.cpm))))
 
 
 pheatmap(log.cpm,
@@ -41,7 +45,7 @@ pheatmap(log.cpm,
          clustering_distance_rows = "euclidean", clustering_distance_cols = "euclidean", 
          clustering_method = "ward.D2", annotation_col = sample.col, show_rownames = FALSE,
          main = "Heatmap of log cpm values using euclidian distance", show_colnames = FALSE,
-        fontsize = 7, border_color = NA)
+        fontsize = 7, border_color = NA, annotation_colors = ann.colors)
 
 
 # calculate correlation between miRNAs and samples
@@ -53,10 +57,11 @@ cor.samples = cor(t(scale(t(log.cpm))))
 clust.m.cor = hclust(as.dist(1-cor.mirna), method = "ward.D2")
 clust.s.cor = hclust(as.dist(1-cor.samples), method = "ward.D2")
 
+
 pheatmap(log.cpm, color = colors, scale = "row",  border_color = NA, 
          clustering_distance_rows = "correlation", clustering_distance_cols = "correlation",
          clustering_method = "ward.D2", annotation_col = sample.col, show_rownames = FALSE,
-         show_colnames = FALSE,
+         show_colnames = FALSE, annotation_colors = ann.colors,
          main = "Heatmap of log cpm values using 1 - correlation distance", fontsize = 7)
 
 
@@ -67,7 +72,7 @@ pheatmap(log.cpm, scale = "row", border_color = NA,
          clustering_distance_rows = as.dist(1-abs(cor.mirna)), 
          clustering_distance_cols = as.dist(1- abs(cor.samples)), 
          clustering_method = "ward.D2", annotation_col = sample.col, show_rownames = FALSE,
-         show_colnames = FALSE,
+         show_colnames = FALSE, annotation_colors = ann.colors,
          main = "Heatmap of log cpm values using 1 - abs(correlation) distance",
          fontsize = 7)
 
