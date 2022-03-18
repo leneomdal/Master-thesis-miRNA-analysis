@@ -52,3 +52,27 @@ ggplot(mean.mirnas.df, aes(x = means)) + geom_histogram(binwidth=1, fill="#69b3a
   ggtitle("Histogram of mean miRNA values") + xlab("log cpm values") + ylab("Count")
 dev.off()
 
+
+
+# correlation plot
+
+library(corrplot)
+library(RColorBrewer)
+cor.mirna = cor(scale(t(log.cpm)))
+
+corrplot(cor.mirna, type="upper", order="hclust",
+         col=brewer.pal(n=8, name="RdYlBu"))
+
+# Colors
+corrplot(cor.mirna, method = "color",
+         title = "method = 'color'",
+         tl.pos = "n", mar = c(2, 1, 3, 1)) 
+?corrplot
+
+corrplot(cor.mirna,
+         method = "circle",       
+         order = "hclust",         # Ordering method of the matrix
+         hclust.method = "ward.D", # If order = "hclust", is the cluster method to be used
+         addrect = 2,              # If order = "hclust", number of cluster rectangles
+         rect.col = 3,             # Color of the rectangles
+         rect.lwd = 3)             # Line width of the rectangles
