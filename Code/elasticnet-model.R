@@ -183,6 +183,12 @@ set.seed(50)
 list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, n.boot = 5, n.folds.outer, n.folds.inner, folds.lambda, alphas)
 View(list.bootstrap[[2]])
 
+
+#Save data from bootstrap
+#write.csv(list.bootstrap[[2]], file = "bootstrap-models.csv", row.names = FALSE)
+#write.csv(list.bootstrap[[1]], file = "bootstrap-coefficients.csv", row.names = FALSE)
+
+
 coeffs.boot = bootstrap.elasticnet(1000, alpha.min, lambda.se)
 table.boot = table(names(coeffs.boot))
 barplot(table.boot)
