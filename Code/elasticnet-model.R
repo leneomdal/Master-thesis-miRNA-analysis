@@ -9,6 +9,7 @@ log.cpm.ad = as.data.frame(t(log.cpm))
 ad= metadata.df$ad
 log.cpm.ad[,"AD"] = ad
 mod.matrix = model.matrix(AD~., data = log.cpm.ad)
+full.mod.matrix = model.matrix(AD~., data = log.cpm.ad)
 
 #Define elsatic net model using alpha = 0.5
 enet.mod = glmnet(mod.matrix, y = ad, alpha = 0.5, family = "binomial", 
@@ -134,28 +135,53 @@ included.coeffs = as.matrix(coeffs)[as.vector(coeffs) != 0,]
 
 
 # Paired bootstrap
-bootstrap.elasticnet = function(log.cpm.ad, n.boot,){
-  coeffs.boot.df = data.frame( row.names = rownames(log.cpm))
+bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.outer, n.folds.inner, folds.lambda, alphas, lambda.type = "lambda.1se"){
+  boot.coeffs.df = data.frame(matrix(ncol = ncol(full.mod.matrix) - 1, nrow = 0))
+  colnames(boot.coeffs.df) = colnames(mod.matrix[,-1])
+  boot.enet.mods.df = data.frame(matrix(ncol = 3, nrow = 0))
+  colnames(boot.enet.mods.df) = c("alpha", "lambda", "deviance")
   
+  # define folds for CV of lambda after selecting alpha ( this should be equal for each bootrap sample)
+  folds.lambda = sample(x = rep(1:n.folds.inner, ceiling(nrow(full.mod.matrix)/n.folds.inner)), 
+                                      size = nrow(full.mod.matrix), replace = FALSE)
   for(i in 1:n.boot){
     boot.index = sample(1:nrow(log.cpm.ad), size = nrow(log.cpm.ad), replace = TRUE)
     boot.data = log.cpm.ad[boot.index, ]
+    model.mat = model.matrix(AD~., data = boot.data)
     
-    model.mat = model.matrix(AD~., data = boot.df)
+    nested.cv.df = nested.cv.alpha(model.mat, n.folds.outer, n.folds.inner, alphas, lambda.type)
     
-    nested.cv.alpha()
-    elasticnet.mod.boot = glmnet(model.mat, ad[boot.index], family = "binomial", 
-                                 alpha = alpha, lambda = lambda)
-    coeffs = coef(elasticnet.mod.boot)
-    included.coeffs = c(as.matrix(coeffs)[as.vector(coeffs) != 0,][-1], included.coeffs)
-    curr.coeffs = as.matrix(coeffs)[as.vector(coeffs) != 0,][-1]
-    for(j in seq_along(curr.coeffs)){
-      
+    
+    #Find alpha with lowest mean deviance
+    boot.alpha.best = nested.cv.df$alpha[nested.cv.df$deviance == min(nested.cv.df$deviance)]
+    boot.cv.enet = cv.glmnet(full.mod.matrix, ad, family = "binomial", alpha = boot.alpha.best, 
+                             foldid = folds.lambda)
+    
+    if(lambda.type == "lambda.1se"){
+      boot.lamba.best = boot.cv.enet$lambda.1se
+      boot.dev = boot.cv.enet$cvm[boot.cv.enet$lambda == boot.cv.enet$lambda.1se]
     }
+    else if(lambda.type == "lambda.min"){
+      boot.lamba.best = boot.cv.enet$lambda.min
+      boot.dev = boot.cv.enet$cvm[boot.cv.enet$lambda == boot.cv.enet$lambda.min]
+    }
+    else{
+      print("Choose either lambda.min or lambda.1se for regularization")
+    }
+    
+    #Save data from this bootstrap sample
+    boot.coeffs = as.matrix(coef(boot.cv.enet, s = boot.lamba.best))
+    #Remove two first rows (intercepts)
+    boot.coeffs.df[i,] = boot.coeffs[seq(3, nrow(boot.coeffs))]
+    boot.enet.mods.df[i,] = c(alpha = boot.alpha.best, lambda = boot.lamba.best, deviance = boot.dev)
+    print(paste("boostrap sample nr.", i))
   }
-  return(included.coeffs)
+  return(list(boot.coeffs.df, boot.enet.mods.df))
 }
 
+set.seed(50)
+list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, n.boot = 5, n.folds.outer, n.folds.inner, folds.lambda, alphas)
+View(list.bootstrap[[2]])
 
 coeffs.boot = bootstrap.elasticnet(1000, alpha.min, lambda.se)
 table.boot = table(names(coeffs.boot))
