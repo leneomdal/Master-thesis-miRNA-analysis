@@ -3,7 +3,7 @@ library(caret)
 library(foreach)
 library(itertools)
 library(boot)
-
+source("Code//normalize-and-filter.R")
 # GLMNET
 log.cpm.ad = as.data.frame(t(log.cpm))
 ad= metadata.df$ad
@@ -69,18 +69,19 @@ find.dev = function(pred, truth){
 }
 
 
+
 #Define number of folds for nested CV of lambda and alpha
 n.folds.inner = 5
 n.folds.outer = 5
 #Function for nested CV NEEDS INPUT VECTOR OF LAMBDAS
 nested.cv.alpha = function(mod.matrix, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.1se"){
-  folds.outer = sample(rep(1:n.folds.outer, ceiling(nrow(mod.matrix)/n.folds.outer)), 
-                       nrow(mod.matrix), replace = FALSE)
+  folds.outer = sample(x = rep(1:n.folds.outer, ceiling(nrow(mod.matrix)/n.folds.outer)), 
+                       size = nrow(mod.matrix), replace = FALSE)
   list.foldid.inner = list()
   for(i in seq_len(n.folds.outer)){
     nrow.train.i = nrow(mod.matrix) - sum(folds.outer == i)
-    list.foldid.inner[i] = sample(rep(1:n.folds.inner, ceiling(nrow.train.i/n.folds.inner)), 
-                                  nrow.train.i, replace = FALSE)
+    list.foldid.inner[[i]] = sample(rep(1:n.folds.inner, times = ceiling(nrow.train.i/n.folds.inner)), 
+                                    nrow.train.i, replace = FALSE)
   }
   cv.alpha.df = data.frame(alpha = rep(NA,length(alphas)), deviance = rep(NA, length(alphas)))
   
@@ -91,8 +92,8 @@ nested.cv.alpha = function(mod.matrix, n.folds.outer, n.folds.inner, alphas, lam
       curr.train.fold = folds.outer != i
       test.set = mod.matrix[curr.test.fold,]
       train.set = mod.matrix[curr.train.fold, ]
-      cv.fit = cv.glmnet(train.set, ad[curr.train.fold], family = "binomial", 
-                         standadize = TRUE, alpha = a, foldid = list.foldid.inner[i] )
+      cv.fit = cv.glmnet(train.set, ad[curr.train.fold], family = "binomial",
+                         alpha = a, foldid = as.vector(list.foldid.inner[[i]]) )
       if(lambda.type == "lambda.1se"){
         lambda = cv.fit$lambda.1se
       }
@@ -102,10 +103,13 @@ nested.cv.alpha = function(mod.matrix, n.folds.outer, n.folds.inner, alphas, lam
       else{
         print("Choose either lambda.min or lambda.1se for regularization")
       }
+      
       best.fit = glmnet(train.set, ad[curr.train.fold], family = "binomial", alpha = alphas[j],
-                        lambda = lambda, foldid = folds.lambda)
+                        lambda = lambda)
       pred = predict(best.fit, test.set, s = lambda, type = "response")
-      dev = dev + find.dev(pred, ad[curr.test.fold])
+      
+      
+      dev = dev + find.dev(pred, as.numeric(ad[curr.test.fold]))
     }
     cv.alpha.df[j,] = c(alphas[j], dev/nrow(mod.matrix))
   }
@@ -113,7 +117,7 @@ nested.cv.alpha = function(mod.matrix, n.folds.outer, n.folds.inner, alphas, lam
 }
 
 set.seed(50)
-nested.cv.alpha(n.folds, alphas, lambda.type = "lambda.1se")
+nested.cv.alpha(mod.matrix, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.1se")
 
 #Find alpha min from nested cv
 alpha.min = cv.alpha.df$alpha[cv.alpha.df$deviance == min(cv.alpha.df$deviance)]
@@ -130,14 +134,16 @@ included.coeffs = as.matrix(coeffs)[as.vector(coeffs) != 0,]
 
 
 # Paired bootstrap
-
-bootstrap.elasticnet = function(n.boot, alpha, lambda){
-  included.coeffs = c()
+bootstrap.elasticnet = function(log.cpm.ad, n.boot,){
+  coeffs.boot.df = data.frame( row.names = rownames(log.cpm))
+  
   for(i in 1:n.boot){
-    boot.index = sample(1:ncol(log.cpm), size = ncol(log.cpm), replace = TRUE)
-    boot.df = log.cpm.ad[boot.index, ]
+    boot.index = sample(1:nrow(log.cpm.ad), size = nrow(log.cpm.ad), replace = TRUE)
+    boot.data = log.cpm.ad[boot.index, ]
     
     model.mat = model.matrix(AD~., data = boot.df)
+    
+    nested.cv.alpha()
     elasticnet.mod.boot = glmnet(model.mat, ad[boot.index], family = "binomial", 
                                  alpha = alpha, lambda = lambda)
     coeffs = coef(elasticnet.mod.boot)
@@ -149,6 +155,8 @@ bootstrap.elasticnet = function(n.boot, alpha, lambda){
   }
   return(included.coeffs)
 }
+
+
 coeffs.boot = bootstrap.elasticnet(1000, alpha.min, lambda.se)
 table.boot = table(names(coeffs.boot))
 barplot(table.boot)
