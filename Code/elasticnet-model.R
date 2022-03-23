@@ -4,27 +4,27 @@ library(foreach)
 library(itertools)
 library(boot)
 source("Code//normalize-and-filter.R")
-# GLMNET
+
+#Define data frame including ad response
 log.cpm.ad = as.data.frame(t(log.cpm))
 ad= metadata.df$ad
 log.cpm.ad[,"AD"] = ad
+#Define model matrix for glmnet model
 mod.matrix = model.matrix(AD~., data = log.cpm.ad)
 full.mod.matrix = model.matrix(AD~., data = log.cpm.ad)
 
-#Define elsatic net model using alpha = 0.5
+# GLMNET tesing
+
+#Define elastic net model using alpha = 0.5
 enet.mod = glmnet(mod.matrix, y = ad, alpha = 0.5, family = "binomial", 
                   standardize = TRUE)
 plot(enet.mod, xvar = "dev")
-enet.mod$lambda
-
 
 # Cross validation
 set.seed(50)
 cv.enet = cv.glmnet(mod.matrix, y = ad, alpha = 0.5, family = "binomial", 
                     standardize = TRUE, nfolds = 5, type.measure = "dev")
 plot(cv.enet)
-cv.enet$cvm
-
 
 best.lambda = cv.enet$lambda.min
 coefficients = coef(cv.enet, s = best.lambda)
@@ -35,12 +35,6 @@ dev =  (1-cv.enet$glmnet.fit$dev.ratio)*cv.enet$glmnet.fit$nulldev
 dev = deviance(enet.mod)
 plot(log(cv.enet$lambda), cv.enet$cvm)
 
-#Define folds
-set.seed(50)
-#Define vector of alphas to run cross validation
-alphas =  seq(0.1, 0.9, 0.05)
-#Define vector of lambdas
-lambdas = seq(0,1)
 
 
 
@@ -71,9 +65,6 @@ find.dev = function(pred, truth){
 
 
 
-#Define number of folds for nested CV of lambda and alpha
-n.folds.inner = 5
-n.folds.outer = 5
 #Function for nested CV NEEDS INPUT VECTOR OF LAMBDAS
 nested.cv.alpha = function(mod.matrix, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.1se"){
   folds.outer = sample(x = rep(1:n.folds.outer, ceiling(nrow(mod.matrix)/n.folds.outer)), 
@@ -117,25 +108,10 @@ nested.cv.alpha = function(mod.matrix, n.folds.outer, n.folds.inner, alphas, lam
   return(cv.alpha.df)
 }
 
-set.seed(50)
-nested.cv.alpha(mod.matrix, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.1se")
-
-#Find alpha min from nested cv
-alpha.min = cv.alpha.df$alpha[cv.alpha.df$deviance == min(cv.alpha.df$deviance)]
-# Cross validate for lambdas using alpha min on entire data set
-cv.enet = cv.glmnet(mod.matrix, ad, family = "binomial", alpha = alpha.min)
-plot(cv.enet)
-
-lambda.se = cv.enet$lambda.1se
-
-enet.mod = glmnet(mod.matrix, ad, family = "binomial", alpha = alpha.min, 
-                  lambda = lambda.se)
-coeffs = coef(enet.mod)
-included.coeffs = as.matrix(coeffs)[as.vector(coeffs) != 0,]
 
 
 # Paired bootstrap
-bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.outer, n.folds.inner, folds.lambda, alphas, lambda.type = "lambda.1se"){
+bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.1se"){
   boot.coeffs.df = data.frame(matrix(ncol = ncol(full.mod.matrix) - 1, nrow = 0))
   colnames(boot.coeffs.df) = colnames(mod.matrix[,-1])
   boot.enet.mods.df = data.frame(matrix(ncol = 3, nrow = 0))
@@ -179,8 +155,16 @@ bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.out
   return(list(boot.coeffs.df, boot.enet.mods.df))
 }
 
+#Define number of folds for nested CV of lambda and alpha
+n.folds.inner = 5
+n.folds.outer = 5
+
+#Define vector of alphas to run cross validation
+alphas =  seq(0.1, 0.9, 0.05)
+
+
 set.seed(50)
-list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, n.boot = 5, n.folds.outer, n.folds.inner, folds.lambda, alphas)
+list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, n.boot = 5, n.folds.outer, n.folds.inner, alphas)
 View(list.bootstrap[[2]])
 
 
@@ -188,8 +172,3 @@ View(list.bootstrap[[2]])
 #write.csv(list.bootstrap[[2]], file = "bootstrap-models.csv", row.names = FALSE)
 #write.csv(list.bootstrap[[1]], file = "bootstrap-coefficients.csv", row.names = FALSE)
 
-
-coeffs.boot = bootstrap.elasticnet(1000, alpha.min, lambda.se)
-table.boot = table(names(coeffs.boot))
-barplot(table.boot)
-hist(coeffs.boot[names(coeffs.boot) == "`miR-20a-3p`"])
