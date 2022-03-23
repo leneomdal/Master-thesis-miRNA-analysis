@@ -67,11 +67,12 @@ find.dev = function(pred, truth){
 
 #Function for nested CV NEEDS INPUT VECTOR OF LAMBDAS
 nested.cv.alpha = function(mod.matrix, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.1se"){
-  folds.outer = sample(x = rep(1:n.folds.outer, ceiling(nrow(mod.matrix)/n.folds.outer)), 
-                       size = nrow(mod.matrix), replace = FALSE)
+  nrow.mod.matrix = nrow(mod.matrix)
+  folds.outer = sample(x = rep(1:n.folds.outer, ceiling(nrow.mod.matrix/n.folds.outer)), 
+                       size = nrow.mod.matrix, replace = FALSE)
   list.foldid.inner = list()
   for(i in seq_len(n.folds.outer)){
-    nrow.train.i = nrow(mod.matrix) - sum(folds.outer == i)
+    nrow.train.i = nrow.mod.matrix - sum(folds.outer == i)
     list.foldid.inner[[i]] = sample(rep(1:n.folds.inner, times = ceiling(nrow.train.i/n.folds.inner)), 
                                     nrow.train.i, replace = FALSE)
   }
@@ -85,30 +86,18 @@ nested.cv.alpha = function(mod.matrix, n.folds.outer, n.folds.inner, alphas, lam
       test.set = mod.matrix[curr.test.fold,]
       train.set = mod.matrix[curr.train.fold, ]
       cv.fit = cv.glmnet(train.set, ad[curr.train.fold], family = "binomial",
-                         alpha = a, foldid = as.vector(list.foldid.inner[[i]]) )
-      if(lambda.type == "lambda.1se"){
-        lambda = cv.fit$lambda.1se
-      }
-      else if(lambda.type == "lambda.min"){
-        lambda = cv.fit$lambda.min
-      }
-      else{
-        print("Choose either lambda.min or lambda.1se for regularization")
-      }
-      
-      best.fit = glmnet(train.set, ad[curr.train.fold], family = "binomial", alpha = alphas[j],
-                        lambda = lambda)
-      pred = predict(best.fit, test.set, s = lambda, type = "response")
-      
+                         alpha = alphas[j], foldid = as.vector(list.foldid.inner[[i]]) )
+      pred = predict(cv.fit, newx = test.set, s = lambda.type, type = "response")
       
       dev = dev + find.dev(pred, as.numeric(ad[curr.test.fold]))
     }
-    cv.alpha.df[j,] = c(alphas[j], dev/nrow(mod.matrix))
+    cv.alpha.df[j,] = c(alphas[j], dev/nrow.mod.matrix)
   }
   return(cv.alpha.df)
 }
-
-
+set.seed(50)
+lol.df = nested.cv.alpha(mod.matrix, n.folds.outer, n.folds.inner, alphas)
+View(lol.df)
 
 # Paired bootstrap
 bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.1se"){
