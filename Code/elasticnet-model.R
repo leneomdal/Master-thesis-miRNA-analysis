@@ -1,9 +1,9 @@
 library(glmnet)
-library(caret)
-library(foreach)
-library(itertools)
-library(boot)
-library(tictoc)
+#library(caret)
+#library(foreach)
+#library(itertools)
+#library(boot)
+#library(tictoc)
 source("Code//normalize-and-filter.R")
 
 #Define data frame including ad response
@@ -12,10 +12,11 @@ ad= metadata.df$ad
 log.cpm.ad[,"AD"] = ad
 #Define model matrix for glmnet model
 mod.matrix = model.matrix(AD~., data = log.cpm.ad)
-full.mod.matrix = model.matrix(AD~., data = log.cpm.ad)
-View(test.mat)
-# GLMNET tesing
+full.mod.matrix = mod.matrix
 
+
+
+# GLMNET testing
 set.seed(51)
 train.ind = sample(1:50, 50, replace = FALSE)
 train.mat = mod.matrix[train.ind,]
@@ -36,7 +37,6 @@ plot(cv.enet)
 pred = predict(cv.enet, test.mat, s = "lambda.min",type = "response")
 tru = ad[51:60]
 
-
 best.lambda = cv.enet$lambda.min
 coefficients = coef(cv.enet, s = best.lambda)
 final.coeffs = as.matrix(coefficients)[as.vector(coefficients) != 0,]
@@ -46,7 +46,7 @@ dev =  (1-cv.enet$glmnet.fit$dev.ratio)*cv.enet$glmnet.fit$nulldev
 dev = deviance(enet.mod)
 plot(log(cv.enet$lambda), cv.enet$cvm)
 
-
+# Finish testing
 
 
 
@@ -81,9 +81,6 @@ tic = function() {
 toc = function() {
   print( Sys.time() - tictoc_var)
 }
-
-lambda.grid=10^seq(1,-2,length=100)
-
 
 
 #Function for nested CV NEEDS INPUT VECTOR OF LAMBDAS
@@ -130,7 +127,7 @@ nested.cv.alpha = function(mod.matrix, response.var, n.folds.outer, n.folds.inne
 
 set.seed(51)
 lol.df = nested.cv.alpha(mod.matrix, ad, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.min")
-View(lol.df)
+
 
 
 
@@ -151,7 +148,6 @@ bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.out
     boot.ad = ad[boot.index]
     
     nested.cv.df = nested.cv.alpha(boot.mod.matrix, boot.ad, n.folds.outer, n.folds.inner, alphas, lambda.type = lambda.type)
-    
     
     #Find alpha with lowest mean deviance
     nested.cv.df$alpha[nested.cv.df$deviance == min(nested.cv.df$deviance)]
@@ -189,21 +185,13 @@ n.folds.outer = 10
 
 #Define vector of alphas to run cross validation
 alphas =  seq(0.1, 0.9, 0.05)
-alpha
 
-set.seed(50)
+set.seed(1235)
 list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, n.boot = 5, n.folds.outer, n.folds.inner, alphas)
 View(list.bootstrap[[2]])
 
 
 #Save data from bootstrap
-#write.csv(list.bootstrap[[2]], file = "bootstrap-models.csv", row.names = FALSE)
-#write.csv(list.bootstrap[[1]], file = "bootstrap-coefficients.csv", row.names = FALSE)
+write.csv(list.bootstrap[[2]], file = "bootstrap-models.csv", row.names = FALSE)
+write.csv(list.bootstrap[[1]], file = "bootstrap-coefficients.csv", row.names = FALSE)
 
-
-for(i in 1:10){
-  print(paste("list:", i))
-  for( j in 1:10){
-    print(sum(list.foldid.inner[[i]] == j))
-  }
-}
