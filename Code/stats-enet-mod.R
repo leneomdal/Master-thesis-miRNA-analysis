@@ -27,3 +27,6 @@ find.included.coeffs = function(bootstrap.coeffs.df){
 
 reduced.coeffs.df = find.included.coeffs(bootstrap.coeffs.df)
 
+?pivot_longer
+reduced.coeffs.df.long =  pivot_longer(reduced.coeffs.df, cols = colnames(reduced.coeffs.df), names_to = "miRNA", values_to = "coeffs")
+View(reduced.coeffs.df.long)
