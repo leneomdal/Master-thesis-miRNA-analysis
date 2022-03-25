@@ -1,7 +1,8 @@
 library(limma)
 library(tidyverse)
 
-path = "C:\\Users\\Lene\\Documents\\Skole\\Prosjektoppgave\\project-thesis-mirna\\new-data\\"
+#path = "C:\\Users\\Lene\\Documents\\Skole\\Prosjektoppgave\\project-thesis-mirna\\new-data\\"
+path = "T:\\master\\data\\"
 
 #Read the data
 count.data <- read.csv(paste0(path, "MatureMatrix.csv"),sep="\t", header =T,row.names=1)
