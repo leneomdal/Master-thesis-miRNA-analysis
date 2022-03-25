@@ -1,9 +1,9 @@
 
 
 # Read saved data resulting from bootstrap nested cv of elasticnet model
-bootstrap.models.df = read.csv("bootstrap-models.csv")
+bootstrap.models.df = read.csv("Data//bootstrap-models.csv")
 View(bootstrap.models.df)
-bootstrap.coeffs.df = read.csv("bootstrap-coefficients.csv")
+bootstrap.coeffs.df = read.csv("Data//bootstrap-coefficients.csv")
 colnames(bootstrap.coeffs.df) = rownames(log.cpm)
 View(bootstrap.coeffs.df)
 
