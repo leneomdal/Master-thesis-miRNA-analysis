@@ -53,21 +53,24 @@ ggplot(mean.mirnas.df, aes(x = means)) + geom_histogram(binwidth=1, fill="#69b3a
 dev.off()
 
 
+# plot of variance against mean values
+
+var.mirnas.df = data.frame(var = apply(log.cpm, 1, var))
+
 
 # correlation plot
 
 library(corrplot)
 library(RColorBrewer)
-cor.mirna = cor(scale(t(log.cpm)))
+cor.mirna = cor(scale(t(log.cpm[1:10,])), method = "spearman")
 
-corrplot(cor.mirna, type="upper", order="hclust",
-         col=brewer.pal(n=8, name="RdYlBu"))
+corrplot(cor.mirna)
 
 # Colors
 corrplot(cor.mirna, method = "color",
          title = "method = 'color'",
          tl.pos = "n", mar = c(2, 1, 3, 1)) 
-?corrplot
+
 
 corrplot(cor.mirna,
          method = "circle",       
