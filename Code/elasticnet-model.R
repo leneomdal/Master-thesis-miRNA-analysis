@@ -1,10 +1,36 @@
-library(glmnet)
+if(!require(glmnet)){
+  install.packages("glmnet")
+  library(glmnet)
+}
+if(!require(stringr)){
+  install.packages("stringr")
+  library(stringr)
+}
 #library(caret)
 #library(foreach)
 #library(itertools)
 #library(boot)
 #library(tictoc)
-source("Code//normalize-and-filter.R")
+
+print("Hei her er jeg!")
+
+project.dir = "Master-thesis-miRNA-analysis"
+reg = regexpr(pattern = project.dir, getwd())
+setwd(substr(getwd(), 1, reg + attr(reg, "match.length")))
+
+path.log.cpm = "Data/log_cpm.csv"
+path.metadata = "Data/metadata.csv"
+if(file.exists(path.log.cpm) & file.exists(path.metadata)){
+  log.cpm = read.csv(path.log.cpm)
+  rownames(log.cpm) = log.cpm[,1]
+  log.cpm = log.cpm[,-1]
+  colnames(log.cpm) = str_remove(colnames(log.cpm), "^X")
+  metadata.df = read.csv(path.metadata)
+} else{
+  source("Code//normalize-and-filter.R")
+  write.csv(log.cpm, path.log.cpm)
+  write.csv(metadata.df, path.metadata, row.names = FALSE)
+}
 
 #Define data frame including ad response
 log.cpm.ad = as.data.frame(t(log.cpm))
@@ -29,7 +55,7 @@ plot(enet.mod, xvar = "dev")
 
 # Cross validation
 set.seed(51)
-cv.enet = cv.glmnet(train.set, y = ad[curr.train.fold], alpha = 0.1, family = "binomial", 
+cv.enet = cv.glmnet(train.mat, y = ad[train.ind], alpha = 0.1, family = "binomial", 
                     standardize = TRUE, nfolds = 5, type.measure = "dev")
 
 plot(cv.enet)
@@ -125,8 +151,7 @@ nested.cv.alpha = function(mod.matrix, response.var, n.folds.outer, n.folds.inne
   return(cv.alpha.df)
 }
 
-set.seed(51)
-lol.df = nested.cv.alpha(mod.matrix, ad, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.min")
+#lol.df = nested.cv.alpha(mod.matrix, ad, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.min")
 
 
 
@@ -187,11 +212,11 @@ n.folds.outer = 10
 alphas =  seq(0.1, 0.9, 0.05)
 
 set.seed(1235)
-list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, n.boot = 5, n.folds.outer, n.folds.inner, alphas)
-View(list.bootstrap[[2]])
+list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, n.boot = 1000, n.folds.outer, n.folds.inner, alphas)
+
 
 
 #Save data from bootstrap
-write.csv(list.bootstrap[[2]], file = "bootstrap-models.csv", row.names = FALSE)
-write.csv(list.bootstrap[[1]], file = "bootstrap-coefficients.csv", row.names = FALSE)
+write.csv(list.bootstrap[[2]], file = "Data/bootstrap-models.csv", row.names = FALSE)
+write.csv(list.bootstrap[[1]], file = "Data/bootstrap-coefficients.csv", row.names = FALSE)
 
