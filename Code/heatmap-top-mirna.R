@@ -27,8 +27,8 @@ log.cpm.top.mirna = log.cpm.top.mirna[,-39]
 
 
 # calculate correlation between miRNAs and samples
-cor.mirna.top = cor(scale(t(log.cpm.top.mirna)))
-cor.samples.top = cor(t(scale(t(log.cpm.top.mirna))))
+cor.mirna.top = cor(scale(t(log.cpm.top.mirna)), method = "spearman")
+cor.samples.top = cor(t(scale(t(log.cpm.top.mirna))), method = "spearman")
 #cor.mirna.top = cor(t(log.cpm.top.mirna))
 #cor.samples.top = cor(log.cpm.top.mirna)
 
