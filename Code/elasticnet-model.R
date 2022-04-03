@@ -12,7 +12,7 @@ if(!require(stringr)){
 #library(boot)
 #library(tictoc)
 
-print("Hei her er jeg!")
+print("Hei her er jeg! im loo cv")
 
 project.dir = "Master-thesis-miRNA-analysis"
 reg = regexpr(pattern = project.dir, getwd())
@@ -51,7 +51,7 @@ test.mat = mod.matrix[c(51:60),]
 #Define elastic net model using alpha = 0.5
 enet.mod = glmnet(mod.matrix, y = ad, alpha = 0.5, family = "binomial", 
                   standardize = TRUE)
-plot(enet.mod, xvar = "dev")
+#plot(enet.mod, xvar = "dev")
 
 # Cross validation
 set.seed(51)
@@ -70,7 +70,7 @@ deviance.lambda = cv.enet$glmnet.fit$dev.ratio
 
 dev =  (1-cv.enet$glmnet.fit$dev.ratio)*cv.enet$glmnet.fit$nulldev
 dev = deviance(enet.mod)
-plot(log(cv.enet$lambda), cv.enet$cvm)
+#plot(log(cv.enet$lambda), cv.enet$cvm)
 
 # Finish testing
 
@@ -132,7 +132,6 @@ nested.cv.alpha = function(mod.matrix, response.var, n.folds.outer, n.folds.inne
       test.set = mod.matrix[curr.test.fold,]
       train.set = mod.matrix[curr.train.fold, ]
       
-      #FEIL HER!!! AD MÅ TAES INN, BLIR FEIL Å BRUKE AD NÅR DENNE KJØRES MED BOOTSTRAPPED SAMPLE
       cv.fit = cv.glmnet(train.set, response.var[curr.train.fold], family = "binomial",
                          alpha = alphas[j], foldid = as.vector(list.foldid.inner[[i]]),
                          standardize = TRUE)               # inner fold, CV for lambda
@@ -151,7 +150,12 @@ nested.cv.alpha = function(mod.matrix, response.var, n.folds.outer, n.folds.inne
   return(cv.alpha.df)
 }
 
+#Define number of folds for nested CV of lambda and alpha
+n.folds.inner = 10
+n.folds.outer = nrow(full.mod.matrix)
+
 #lol.df = nested.cv.alpha(mod.matrix, ad, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.min")
+#View(lol.df)
 
 
 
@@ -204,12 +208,10 @@ bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.out
   return(list(boot.coeffs.df, boot.enet.mods.df))
 }
 
-#Define number of folds for nested CV of lambda and alpha
-n.folds.inner = 10
-n.folds.outer = 10
+
 
 #Define vector of alphas to run cross validation
-alphas =  seq(0.1, 0.9, 0.05)
+alphas =  seq(0.1, 1, 0.05)
 
 set.seed(1235)
 list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, n.boot = 1000, n.folds.outer, n.folds.inner, alphas)
@@ -217,6 +219,6 @@ list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, n.boot = 1000
 
 
 #Save data from bootstrap
-write.csv(list.bootstrap[[2]], file = "Data/bootstrap-models.csv", row.names = FALSE)
-write.csv(list.bootstrap[[1]], file = "Data/bootstrap-coefficients.csv", row.names = FALSE)
+write.csv(list.bootstrap[[2]], file = paste("Data/bootstrap-models-innerF",n.folds.inner, "-outerF", n.folds.outer, ".csv",sep = ""), row.names = FALSE)
+write.csv(list.bootstrap[[1]], file = paste("Data/bootstrap-coefficients-innerF",n.folds.inner, "-outerF", n.folds.outer,".csv", sep = ""), row.names = FALSE)
 
