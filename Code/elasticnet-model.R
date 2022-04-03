@@ -154,14 +154,27 @@ nested.cv.alpha = function(mod.matrix, response.var, n.folds.outer, n.folds.inne
 n.folds.inner = 10
 n.folds.outer = nrow(full.mod.matrix)
 
-#lol.df = nested.cv.alpha(mod.matrix, ad, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.min")
-#View(lol.df)
+
+# RUN for actual model fit
+
+# set.seed(2345)
+# nested.cv.alpha.df = nested.cv.alpha(full.mod.matrix, ad, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.min")
+# View(nested.cv.alpha.df)
+# best.alpha.nested = nested.cv.alpha.df$alpha[nested.cv.alpha.df$deviance == min(nested.cv.alpha.df$deviance)]
+# 
+# final.model.cv = cv.glmnet(full.mod.matrix, ad, family = "binomial", alpha = best.alpha.nested)
+# plot(final.model.cv$glmnet.fit, xvar = "lambda", label = TRUE)
+# final.model.cv$lambda.1se
+# 
+coeffs.final.mod = as.matrix(coef(final.model.cv, s = "lambda.1se"))
+names.final.coeffs = str_remove_all(names(as.matrix(coeffs.final.mod)[as.vector(coeffs.final.mod) != 0,]), "`")
 
 
 
 
 # Paired bootstrap
-bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.outer, n.folds.inner, alphas, lambda.type = "lambda.min"){
+bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.outer, 
+                                n.folds.inner, alphas, lambda.type = "lambda.min"){
   boot.coeffs.df = data.frame(matrix(ncol = ncol(full.mod.matrix) - 1, nrow = 0))
   colnames(boot.coeffs.df) = colnames(mod.matrix[,-1])
   boot.enet.mods.df = data.frame(matrix(ncol = 3, nrow = 0))
@@ -176,11 +189,16 @@ bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.out
     boot.mod.matrix = model.matrix(AD~., data = boot.data)
     boot.ad = ad[boot.index]
     
-    nested.cv.df = nested.cv.alpha(boot.mod.matrix, boot.ad, n.folds.outer, n.folds.inner, alphas, lambda.type = lambda.type)
+    nested.cv.df = nested.cv.alpha(boot.mod.matrix, boot.ad, n.folds.outer, n.folds.inner, 
+                                   alphas, lambda.type = lambda.type)
     
     #Find alpha with lowest mean deviance
-    nested.cv.df$alpha[nested.cv.df$deviance == min(nested.cv.df$deviance)]
     boot.alpha.best = nested.cv.df$alpha[nested.cv.df$deviance == min(nested.cv.df$deviance)]
+    #If multiple alphas show equal deviance, choose the highest alpha
+    if(lenght(boot.alpha.best) > 1){
+      boot.alpha.best = boot.alpha.best[length(boot.alpha.best)]
+    }
+    
     
     # SKAL MAN BRUKE FULL.MOD.MAT HER ELLER HELE BOOTSTRAPPED DATASET??
     boot.cv.enet = cv.glmnet(boot.mod.matrix, boot.ad, family = "binomial", alpha = boot.alpha.best, 
@@ -200,9 +218,10 @@ bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.out
     
     #Save data from this bootstrap sample
     boot.coeffs = as.matrix(coef(boot.cv.enet, s = boot.lamba.best))
-    #Remove two first rows (intercepts)
-    boot.coeffs.df[i,] = boot.coeffs[seq(3, nrow(boot.coeffs))]
-    boot.enet.mods.df[i,] = c(alpha = boot.alpha.best, lambda = boot.lamba.best, deviance = boot.dev)
+    #Remove two first rows (intercepts) DO NOT DO THIS
+    #boot.coeffs.df[i,] = boot.coeffs[seq(3, nrow(boot.coeffs))]
+    boot.enet.mods.df[i,] = c(alpha = boot.alpha.best, lambda = boot.lamba.best, 
+                              deviance = boot.dev)
     print(paste("boostrap sample nr.", i))
   }
   return(list(boot.coeffs.df, boot.enet.mods.df))
@@ -212,13 +231,21 @@ bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.out
 
 #Define vector of alphas to run cross validation
 alphas =  seq(0.1, 1, 0.05)
+lambda.t = "lambda.1se"
 
 set.seed(1235)
-list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, n.boot = 1000, n.folds.outer, n.folds.inner, alphas)
+list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, n.boot = 1000, 
+                                      n.folds.outer, n.folds.inner, alphas, 
+                                      lambda.type = lambda.t)
+
 
 
 
 #Save data from bootstrap
-write.csv(list.bootstrap[[2]], file = paste("Data/bootstrap-models-innerF",n.folds.inner, "-outerF", n.folds.outer, ".csv",sep = ""), row.names = FALSE)
-write.csv(list.bootstrap[[1]], file = paste("Data/bootstrap-coefficients-innerF",n.folds.inner, "-outerF", n.folds.outer,".csv", sep = ""), row.names = FALSE)
+write.csv(list.bootstrap[[2]], file = paste("Data/bootstrap-models-innerF",n.folds.inner, 
+                                            "-outerF", n.folds.outer,"-", lambda.t, 
+                                            ".csv",sep = ""), row.names = FALSE)
+write.csv(list.bootstrap[[1]], file = paste("Data/bootstrap-coefficients-innerF",
+                                            n.folds.inner, "-outerF", n.folds.outer,"-", 
+                                            lambda.t ,".csv", sep = ""), row.names = FALSE)
 
