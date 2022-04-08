@@ -27,11 +27,14 @@ log.cpm.top.mirna = log.cpm.top.mirna[,-39]
 
 
 # calculate correlation between miRNAs and samples
-cor.mirna.top = cor(scale(t(log.cpm.top.mirna)), method = "spearman")
-cor.samples.top = cor(t(scale(t(log.cpm.top.mirna))), method = "spearman")
+cor.mirna.top = cor(scale(t(log.cpm.top.mirna)), method = "pearson")
+cor.samples.top = cor(t(scale(t(log.cpm.top.mirna))), method = "pearson")
+
+# Without scaling
 #cor.mirna.top = cor(t(log.cpm.top.mirna))
 #cor.samples.top = cor(log.cpm.top.mirna)
 
+# Only centering
 #cor.mirna.top = cor(scale(t(log.cpm.top.mirna), scale = FALSE))
 #cor.samples.top = cor(t(scale(t(log.cpm.top.mirna), scale = FALSE)))
 
@@ -41,6 +44,7 @@ cor.samples.top = cor(t(scale(t(log.cpm.top.mirna))), method = "spearman")
 probiotic.groups = ifelse(metadata.df$probiotic == 1, "Probiotic", "Placebo")
 ad.groups = ifelse(metadata.df$ad == 1, "AD", "No.AD")
 mad.groups = ifelse(metadata.df$matatopy == 1, "Maternal.atopy", "No.maternal.atopy")
+sex.groups = ifelse(metadata.df$sex == 1, "boy", "girl")
 sample.col = data.frame(Supplement = as.factor(probiotic.groups), Atopic.dermatitis = as.factor(ad.groups), 
                         Maternal.atopy = as.factor(mad.groups))
 rownames(sample.col) = colnames(log.cpm)

@@ -47,8 +47,9 @@ pheatmap(log.cpm,
         fontsize = 7, border_color = NA, annotation_colors = ann.colors)
 
 
+
 # calculate correlation between miRNAs and samples
-cor.mirna = cor(scale(t(log.cpm)), method = "spearman")
+cor.mirna = cor(scale(t(log.cpm)), method = "pearson")
 cor.samples = cor(t(scale(t(log.cpm))), method = "pearson")
 
 
@@ -67,6 +68,7 @@ pheatmap(log.cpm, color = colors, scale = "row",  border_color = NA,
 
 clust.m.abs.cor = hclust(as.dist(1-abs(cor.mirna)), method = "ward.D2")
 clust.s.abs.cor = hclust(as.dist(1-abs(cor.samples)), method = "ward.D2")
+
 #plot 1-abs(cor) distance
 pheatmap(log.cpm, scale = "row", border_color = NA, 
          clustering_distance_rows = as.dist(1-abs(cor.mirna)), 
