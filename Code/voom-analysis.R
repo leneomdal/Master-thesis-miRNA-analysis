@@ -20,7 +20,7 @@ library(edgeR)
 
 # Define design matrices
 design.matrix = model.matrix(~ probiotic + ad , data = metadata.df) # adjusting for ad
-design.matrix.all = model.matrix(~probiotic + ad + matatopy, data = metadata.df)
+design.matrix.all = model.matrix(~probiotic + ad + matatopy + ad*probiotic, data = metadata.df)
 design.matrix.intr = model.matrix(~probiotic + ad + probiotic*ad, data = metadata.df)
 
 
@@ -40,9 +40,12 @@ eB.voom.fit = eBayes(voom.fit)
 
 
 # RESULTING TOP MIRNA FROM VOOM
+
 top.table = topTable(eB.voom.fit, coef = "probiotic1", sort.by = "p", number = 10)
+top.table
+top.table[rownames(top.table) %in% names.final.coeffs[-1],]
 topTable(eB.voom.fit, coef = 2, sort.by = "p", number = sum(top.table$P.Value<0.05))
-topTable(eB.voom.fit, coef = 2, sort.by = "p")
+topTable(eB.voom.fit)
 
 top.mirna = topTable(eB.voom.fit, coef = 2, sort.by = "p", number = 1000)
 top.mirna = rownames(top.mirna)
