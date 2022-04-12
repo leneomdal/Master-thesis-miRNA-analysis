@@ -3,11 +3,9 @@
 # Read saved data resulting from bootstrap nested cv of elasticnet model
 bootstrap.models.df = read.csv("Data//bootstrap-models-repeated-folds10.csv")
 View(bootstrap.models.df)
-bootstrap.coeffs.df = read.csv("Data//bootstrap-coefficients-innerF10-outerF60-lambda.1se.csv")
+bootstrap.coeffs.df = read.csv("Data//bootstrap-coefficients-repeated10.csv")
 colnames(bootstrap.coeffs.df) = c("(Intercept)", rownames(log.cpm))
 View(bootstrap.coeffs.df)
-dim(bootstrap.coeffs.df)
-length(rownames(log.cpm))
 
 
 
@@ -17,7 +15,7 @@ find.included.coeffs = function(bootstrap.coeffs.df){
   included.ind = c(NA)
   count = 1
   for(i in seq_len(ncol(bootstrap.coeffs.df))){
-    if(sum(bootstrap.coeffs.df[,i] == 0) > 500){ # cut off for further plots
+    if(sum(bootstrap.coeffs.df[,i] == 0) > 800){ # cut off for further plots
     }else{
       included.ind[count] = i
       count = count +1
@@ -47,7 +45,7 @@ View(reduced.coeffs.df.long)
 
 # Boxplot of bootstrap coeffs
 
-ggplot(data = reduced.coeffs.df.long, aes(x = miRNA, y = coeffs)) + geom_boxplot(notch = TRUE)
+ggplot(data = reduced.coeffs.df.long, aes(x = miRNA, y = coeffs)) + geom_boxplot()
 ?geom_boxplot
 
 #BARPLOT OF NUMBER OF TIMES EACH MIRNA IS INCLUDED
@@ -62,5 +60,5 @@ count.number.of.times.included = function(reduced.coeffs.df){
   }
   return(included.times.df)
 }
-included.mirna.times.df = count.number.of.times.included(reduced.coeffs.df)
+included.mirna.times.df = count.number.of.times.included(reduced.coeffs.df[,-1])
 ggplot(data = included.mirna.times.df, aes(x = miRNA, y = times)) + geom_bar(stat = "identity")

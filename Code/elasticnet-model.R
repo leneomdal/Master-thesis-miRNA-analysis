@@ -39,50 +39,50 @@ full.mod.matrix = mod.matrix
 
 # --------------------------REPEATED CV-------------------------------------------------
 #Lambda sequence for CV
-lambda.seq = 5^seq(1,-3,length=100)
+lambda.seq = exp(seq(1,-5,length=200))
 #Times to repeat the CV
 n.repeat = 10
 #Define vector of alphas to run cross validation
 alphas =  seq(0.1, 1, 0.05)
 #Define number of folds in CV
-n.folds = 10
+n.folds = 5
 
 # set.seed(345)
 # repeated.cv.results = repeat.cv.function(mod.matrix, ad, alphas, lambda.seq, n.repeat, n.folds)
 # 
-# actual.rep.enet.model = glmnet(full.mod.matrix, ad, family = "binomial", 
+# actual.rep.enet.model = glmnet(full.mod.matrix, ad, family = "binomial",
 #                            alpha = repeated.cv.results$alpha, lambda = repeated.cv.results$lambda)
 # 
-# 
-# 
-# # BOOTSTRAP REPEATED CV
-# 
-# #Define number of bootstrap samples
-# n.boot = 1000
-# 
-# set.seed(678)
-# boot.repeated.df = bootstrap.repeated.cv(log.cpm.ad, full.mod.matrix, alphas,lambda.seq, n.boot, n.repeat, n.folds)
-# 
-# #Save data from bootstrap
-# write.csv(boot.repeated.df[[2]], file = paste("Data/bootstrap-models-repeated-folds",
-#                                               n.folds,".csv",sep = ""), row.names = FALSE)
-# write.csv(boot.repeated.df[[1]], file = paste("Data/bootstrap-coefficients-repeated",
-#                                               n.folds, ".csv", sep = ""), row.names = FALSE)
-# 
+
+
+# BOOTSTRAP REPEATED CV
+
+#Define number of bootstrap samples
+n.boot = 1000
+n.folds
+set.seed(678)
+boot.repeated.df = bootstrap.repeated.cv(log.cpm.ad, full.mod.matrix, alphas,lambda.seq, n.boot, n.repeat, n.folds)
+
+#Save data from bootstrap
+write.csv(boot.repeated.df[[2]], file = paste("Data/bootstrap-models-repeated-folds",
+                                              n.folds,".csv",sep = ""), row.names = FALSE)
+write.csv(boot.repeated.df[[1]], file = paste("Data/bootstrap-coefficients-repeated",
+                                              n.folds, ".csv", sep = ""), row.names = FALSE)
+
 
 #----------------------NESTED CV-------------------------------------------------
 
 
 
-
-#Define number of folds for nested CV of lambda and alpha
-n.folds.inner = 5
-n.folds.outer = 10
-lambda.type = "lambda.1se"
-
-
-# RUN for actual model fit
-
+# 
+# #Define number of folds for nested CV of lambda and alpha
+# n.folds.inner = 5
+# n.folds.outer = 10
+# lambda.type = "lambda.min"
+# 
+# 
+# # RUN for actual model fit
+# 
 # set.seed(2345)
 # nested.cv.alpha.df = nested.cv.alpha(full.mod.matrix, ad, n.folds.outer, n.folds.inner, alphas, lambda.type = lambda.type)
 # 
@@ -94,28 +94,28 @@ lambda.type = "lambda.1se"
 # 
 # coeffs.final.mod = as.matrix(coef(final.model.cv, s = lambda.type))
 # names.final.coeffs = str_remove_all(names(as.matrix(coeffs.final.mod)[as.vector(coeffs.final.mod) != 0,]), "`")
-
-
-
-# BOOTSTRAP NESTED CV
-set.seed(1235)
-list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, n.boot = 1000,
-                                      n.folds.outer, n.folds.inner, alphas,
-                                      lambda.type = lambda.type)
-
-# Define lambda type to use in name of stored bootstrap file
-if(lambda.type == "lambda.1se"){
-  lambda = "lambda-1se"
-}
-if(lambda.type == "lambda.min"){
-  lambda = "lambda-min"
-}
-
-# #Save data from bootstrap
-write.csv(list.bootstrap[[2]], file = paste("Data/bootstrap-models-innerF",n.folds.inner,
-                                            "-outerF", n.folds.outer,"-", lambda,
-                                            ".csv",sep = ""), row.names = FALSE)
-write.csv(list.bootstrap[[1]], file = paste("Data/bootstrap-coefficients-innerF",
-                                            n.folds.inner, "-outerF", n.folds.outer,"-",
-                                            lambda ,".csv", sep = ""), row.names = FALSE)
-
+# 
+# 
+# 
+# # BOOTSTRAP NESTED CV
+# set.seed(1235)
+# list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, n.boot = 1000,
+#                                       n.folds.outer, n.folds.inner, alphas,
+#                                       lambda.type = lambda.type)
+# 
+# # Define lambda type to use in name of stored bootstrap file
+# if(lambda.type == "lambda.1se"){
+#   lambda = "lambda-1se"
+# }
+# if(lambda.type == "lambda.min"){
+#   lambda = "lambda-min"
+# }
+# 
+# # #Save data from bootstrap
+# write.csv(list.bootstrap[[2]], file = paste("Data/bootstrap-models-innerF",n.folds.inner,
+#                                             "-outerF", n.folds.outer,"-", lambda,
+#                                             ".csv",sep = ""), row.names = FALSE)
+# write.csv(list.bootstrap[[1]], file = paste("Data/bootstrap-coefficients-innerF",
+#                                             n.folds.inner, "-outerF", n.folds.outer,"-",
+#                                             lambda ,".csv", sep = ""), row.names = FALSE)
+# 
