@@ -51,6 +51,7 @@ log.cpm = cpm(dge, log = TRUE)
 
 metadata.df$probiotic = as.factor(metadata.df$probiotic)
 metadata.df$ad = as.factor(metadata.df$ad)
+metadata.df$matatopy = as.factor(metadata.df$matatopy)
 
 # Create DESeq matrix object
 #ddsMat <- DESeqDataSetFromMatrix(countData = dge$counts,
