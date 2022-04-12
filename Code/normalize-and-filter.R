@@ -7,6 +7,7 @@ library(DESeq2)
 #Make dge object
 dge.full <- DGEList(counts=count.df)
 
+
 # Filtering out miRNAs with cpm value less than 1 in 30 or less of the samples
 keep = rowSums(cpm(dge.full)>1)>=10
 dge.full$counts = dge.full$counts[keep,]
