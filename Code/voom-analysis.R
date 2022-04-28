@@ -28,7 +28,7 @@ design.matrix.intr = model.matrix(~probiotic + ad + probiotic*ad, data = metadat
 # VOOM method ( uses counts and not log cpm)
 voom.weights = voomWithQualityWeights(dge, design.matrix.all, plot=FALSE)
 voom.fit = lmFit(voom.weights, design.matrix.all)
-eB.voom.fit = eBayes(voom.fit) 
+eB.voom.fit = eBayes(voom.fit, robust = TRUE) 
 
 
 
