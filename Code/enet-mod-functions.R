@@ -19,7 +19,7 @@ repeat.cv.function = function(mod.matrix, response, alphas, lambda.seq, n.repeat
   
   #Define lambda folds, different for each repetition but equal for each alpha
   lambda.folds = list()
-  seq.to.sample.folds = rep(1:n.folds, ceiling(nrow(mod.matrix)/n.folds))
+  seq.to.sample.folds = rep(1:n.folds, ceiling(nrow(mod.matrix)/n.folds))[1:nrow(mod.matrix)]
   for(r in seq_len(n.repeat)){
     lambda.folds[[r]] = sample(seq.to.sample.folds)
   }
@@ -28,7 +28,7 @@ repeat.cv.function = function(mod.matrix, response, alphas, lambda.seq, n.repeat
   for(i in seq_len(n.repeat)){
     cv.mean.error = c()
     for(j in seq_along(alphas)){
-      repeated.cv = cv.glmnet(mod.matrix, ad, type.measure = "deviance", family = "binomial",
+      repeated.cv = cv.glmnet(mod.matrix, response, type.measure = "deviance", family = "binomial",
                               alpha = alphas[j], lambda = lambda.seq, foldid = lambda.folds[[i]])
       cv.mean.error = c(cv.mean.error, repeated.cv$cvm)
     }
@@ -50,7 +50,7 @@ repeat.cv.function = function(mod.matrix, response, alphas, lambda.seq, n.repeat
 
 #---------------------------------------------------------------------------
 #--------------------Bootstrap repeated CV----------------------------------
-bootstrap.repeated.cv = function(log.cpm.ad, full.mod.matrix, alphas,lambda.seq, 
+bootstrap.repeated.cv = function(log.cpm.ad, full.mod.matrix, response, alphas,lambda.seq, 
                                  n.boot, n.repeat, n.folds){
   boot.coeffs.df = data.frame(matrix(ncol = ncol(full.mod.matrix), nrow = 0))
   colnames(boot.coeffs.df) = colnames(full.mod.matrix)
@@ -61,7 +61,7 @@ bootstrap.repeated.cv = function(log.cpm.ad, full.mod.matrix, alphas,lambda.seq,
     boot.index = sample(1:nrow(log.cpm.ad), size = nrow(log.cpm.ad), replace = TRUE)
     boot.data = log.cpm.ad[boot.index, ]
     boot.mod.matrix = model.matrix(AD~., data = boot.data)
-    boot.ad = ad[boot.index]
+    boot.ad = response[boot.index]
     
     boot.repeated.cv.results = repeat.cv.function(boot.mod.matrix, boot.ad, alphas, 
                                                   lambda.seq, n.repeat, n.folds)
@@ -118,6 +118,7 @@ nested.cv.alpha = function(mod.matrix, response.var, n.folds.outer, n.folds.inne
   colnames(cv.alpha.df) = c("alpha", "deviance")
   tic()
   for(j in seq_along(alphas)){                             # for each alpha run nested CV
+    #print(paste("alpha:", alphas[j], "___________________________"))
     dev = 0
     for(i in seq_len(n.folds.outer)){                      # outer fold, nested CV 
       curr.test.fold = folds.outer == i
@@ -125,14 +126,17 @@ nested.cv.alpha = function(mod.matrix, response.var, n.folds.outer, n.folds.inne
       test.set = mod.matrix[curr.test.fold,]
       train.set = mod.matrix[curr.train.fold, ]
       
-      cv.fit = cv.glmnet(train.set, response.var[curr.train.fold], family = "binomial",
-                         alpha = alphas[j], foldid = as.vector(list.foldid.inner[[i]]),
-                         standardize = TRUE)               # inner fold, CV for lambda
+      cv.fit = cv.glmnet(train.set, response.var[curr.train.fold], type.measure = "deviance",
+                         family = "binomial",
+                         alpha = alphas[j], foldid = as.vector(list.foldid.inner[[i]]))              
+      # inner fold, CV for lambda
+      
       
       pred = predict(cv.fit, newx = test.set, s = lambda.type, 
                      type = "response")                    # predict on left out test set of CV
       
       dev = dev + find.dev(pred, as.numeric(as.character(response.var[curr.test.fold])))
+      #print(paste("lambda:", signif(cv.fit$lambda.1se, digits = 3 ), "dev:", signif(find.dev(pred, as.numeric(as.character(response.var[curr.test.fold])))/sum(curr.test.fold), digits = 3), "pred:", pred[1], pred[2], pred[3], pred[4], "truth:", response.var[curr.test.fold][1], response.var[curr.test.fold][2], response.var[curr.test.fold][3], response.var[curr.test.fold][4] ))
     }
     
     cv.alpha.df[j,] = c(alphas[j], dev/nrow.mod.matrix)   # store average deviance across folds
@@ -146,10 +150,10 @@ nested.cv.alpha = function(mod.matrix, response.var, n.folds.outer, n.folds.inne
 #--------------------Bootstrap nested CV------------------------------------
 
 # Paired bootstrap NESTED CV
-bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.outer, 
-                                n.folds.inner, alphas, lambda.type = "lambda.min"){
+bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, response, n.boot, n.folds.outer, 
+                                n.folds.inner, alphas, lambda.type){
   boot.coeffs.df = data.frame(matrix(ncol = ncol(full.mod.matrix), nrow = 0))
-  colnames(boot.coeffs.df) = colnames(mod.matrix)
+  colnames(boot.coeffs.df) = colnames(full.mod.matrix)
   boot.enet.mods.df = data.frame(matrix(ncol = 3, nrow = 0))
   colnames(boot.enet.mods.df) = c("alpha", "lambda", "deviance")
   
@@ -158,9 +162,10 @@ bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.out
                         size = nrow(full.mod.matrix), replace = FALSE)
   for(i in 1:n.boot){
     boot.index = sample(1:nrow(log.cpm.ad), size = nrow(log.cpm.ad), replace = TRUE)
-    boot.data = log.cpm.ad[boot.index, ]
-    boot.mod.matrix = model.matrix(AD~., data = boot.data)
-    boot.ad = ad[boot.index]
+    #boot.data = log.cpm.ad[boot.index, ]
+    #boot.mod.matrix = model.matrix(AD~., data = boot.data)
+    boot.mod.matrix = full.mod.matrix[boot.index,]
+    boot.ad = response[boot.index]
     
     nested.cv.df = nested.cv.alpha(boot.mod.matrix, boot.ad, n.folds.outer, n.folds.inner, 
                                    alphas, lambda.type = lambda.type)
@@ -187,8 +192,7 @@ bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, n.boot, n.folds.out
     
     #Save data from this bootstrap sample
     boot.coeffs = as.matrix(coef(boot.cv.enet, s = boot.lamba.best))
-    #Remove two first rows (intercepts) DO NOT DO THIS
-    boot.coeffs.df[i,] = boot.coeffs #[seq(3, nrow(boot.coeffs))]
+    boot.coeffs.df[i,] = boot.coeffs 
     boot.enet.mods.df[i,] = c(alpha = boot.alpha.best, lambda = boot.lamba.best, 
                               deviance = boot.dev)
     print(paste("boostrap sample nr.", i))

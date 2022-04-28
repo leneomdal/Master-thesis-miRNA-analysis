@@ -1,9 +1,11 @@
 
 
 # Read saved data resulting from bootstrap nested cv of elasticnet model
-bootstrap.models.df = read.csv("Data//bootstrap-models-repeated-folds10.csv")
+bootstrap.models.df = read.csv("Data//bootstrap-models-innerF10-outerF10-lambda-min-new.csv")
+#bootstrap.models.df = read.csv("Data//bootstrap-models-repeated-folds-5.csv")
 View(bootstrap.models.df)
-bootstrap.coeffs.df = read.csv("Data//bootstrap-coefficients-repeated10.csv")
+bootstrap.coeffs.df = read.csv("Data//bootstrap-coefficients-innerF10-outerF10-lambda-min-new.csv")
+#bootstrap.coeffs.df = read.csv("Data//bootstrap-coefficients-repeated-5.csv")
 colnames(bootstrap.coeffs.df) = c("(Intercept)", rownames(log.cpm))
 View(bootstrap.coeffs.df)
 
@@ -15,10 +17,10 @@ find.included.coeffs = function(bootstrap.coeffs.df){
   included.ind = c(NA)
   count = 1
   for(i in seq_len(ncol(bootstrap.coeffs.df))){
-    if(sum(bootstrap.coeffs.df[,i] == 0) > 800){ # cut off for further plots
-    }else{
+    if(sum(bootstrap.coeffs.df[,i] == 0) < 100){ # cut off for further plots
       included.ind[count] = i
       count = count +1
+    }else{
     }
   }
   reduced.coeffs = bootstrap.coeffs.df[, included.ind]
@@ -32,7 +34,7 @@ dim(bootstrap.coeffs.df)
 
 reduced.coeffs.df.long =  pivot_longer(reduced.coeffs.df[,-1], cols = colnames(reduced.coeffs.df[,-1]), 
                                        names_to = "miRNA", values_to = "coeffs")
-View(reduced.coeffs.df.long)
+
 
 # final.coeffs.boot.long = pivot_longer(bootstrap.coeffs.df[,names.final.coeffs], 
 #                                       cols = names.final.coeffs, names_to = "miRNA", 
@@ -46,7 +48,10 @@ View(reduced.coeffs.df.long)
 # Boxplot of bootstrap coeffs
 
 ggplot(data = reduced.coeffs.df.long, aes(x = miRNA, y = coeffs)) + geom_boxplot()
-?geom_boxplot
+
+# dat = data.frame(vec1 = c(2,2,2,2,1,1,1,1,-6,6,2,2,2,2,1,1,1,1,-6,6), vec2 = c(rep(1, 10), rep(2, 10)))
+# ggplot(data = dat, aes(x = as.character(vec2), y = vec1)) + geom_boxplot()
+
 
 #BARPLOT OF NUMBER OF TIMES EACH MIRNA IS INCLUDED
 
