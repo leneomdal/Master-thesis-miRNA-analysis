@@ -157,7 +157,7 @@ bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, response, n.boot, n
   boot.enet.mods.df = data.frame(matrix(ncol = 3, nrow = 0))
   colnames(boot.enet.mods.df) = c("alpha", "lambda", "deviance")
   
-  # define folds for CV of lambda after selecting alpha ( this should be equal for each bootstrap sample)
+  # define folds for CV of lambda after selecting alpha ( this should be equal for each bootstrap sample) why
   folds.lambda = sample(x = rep(1:n.folds.inner, ceiling(nrow(full.mod.matrix)/n.folds.inner)), 
                         size = nrow(full.mod.matrix), replace = FALSE)
   for(i in 1:n.boot){
@@ -175,6 +175,9 @@ bootstrap.elasticnet = function(log.cpm.ad, full.mod.matrix, response, n.boot, n
     #If multiple alphas show equal deviance, choose the highest alpha
     if(length(boot.alpha.best) > 1){
       boot.alpha.best = boot.alpha.best[length(boot.alpha.best)]
+    }
+    if(boot.alpha.best >1){
+      print("alpha is greater tha one here?")
     }
     
     boot.cv.enet = cv.glmnet(boot.mod.matrix[,-1], boot.ad, family = "binomial", alpha = boot.alpha.best, 

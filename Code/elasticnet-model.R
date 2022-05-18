@@ -85,7 +85,7 @@ n.folds = 10
 #Define number of folds for nested CV of lambda and alpha
 n.folds.inner = 10
 n.folds.outer = 10 
-lambda.type = "lambda.min"
+lambda.type = "lambda.1se"
 alphas =  seq(0.1, 1, 0.05)
 
 #______________________
@@ -108,8 +108,8 @@ alphas =  seq(0.1, 1, 0.05)
 # RUN for actual model fit
 
 # set.seed(2345)
-# nested.cv.alpha.df = nested.cv.alpha(full.mod.matrix, ad, n.folds.outer, n.folds.inner, alphas, lambda.type = lambda.type)
-# #nested.cv.df = nested.cv.alpha(boot.mod.matrix, boot.ad, n.folds.outer, n.folds.inner, alphas, lambda.type = lambda.type)
+# nested.cv.alpha.df = nested.cv.alpha(full.mod.matrix, ad, n.folds.outer, n.folds.inner, 
+#                                      alphas, lambda.type = lambda.type)
 # best.alpha.nested = nested.cv.alpha.df$alpha[nested.cv.alpha.df$deviance == min(nested.cv.alpha.df$deviance)]
 # 
 # final.model.cv = cv.glmnet(full.mod.matrix[,-1], ad, family = "binomial", alpha = best.alpha.nested)
@@ -118,12 +118,12 @@ alphas =  seq(0.1, 1, 0.05)
 # 
 # coeffs.final.mod = as.matrix(coef(final.model.cv, s = lambda.type))
 # names.final.coeffs = str_remove_all(names(as.matrix(coeffs.final.mod)[as.vector(coeffs.final.mod) != 0,]), "`")
-# 
+
 
 
 # BOOTSTRAP NESTED CV
 set.seed(1235)
-list.bootstrap2 = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, response = ad, n.boot = 1000,
+list.bootstrap = bootstrap.elasticnet(log.cpm.ad, full.mod.matrix, response = ad, n.boot = 1000,
                                       n.folds.outer, n.folds.inner, alphas,
                                       lambda.type = lambda.type)
 
@@ -136,7 +136,7 @@ if(lambda.type == "lambda.min"){
 }
 
 # #Save data from bootstrap
-write.csv(list.bootstrap[[2]], file = paste("Data/bootstrap-models- allcov-innerF",n.folds.inner,
+write.csv(list.bootstrap[[2]], file = paste("Data/bootstrap-models-allcov-innerF",n.folds.inner,
                                             "-outerF", n.folds.outer,"-", lambda, "-new",
                                             ".csv",sep = ""), row.names = FALSE)
 write.csv(list.bootstrap[[1]], file = paste("Data/bootstrap-coefficients-allcov-innerF",
