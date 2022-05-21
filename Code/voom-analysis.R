@@ -46,14 +46,15 @@ dev.off()
 
 # RESULTING TOP MIRNA FROM VOOM
 
-top.table = topTable(eB.voom.fit, coef = "probiotic", sort.by = "p", number = 10)
+top.table = topTable(eB.voom.fit, coef = "probiotic1", sort.by = "p", number = 100)
 top.table
 top.table[rownames(top.table) %in% names.final.coeffs[-1],]
-topTable(eB.voom.fit, coef = 2, sort.by = "p", number = sum(top.table$P.Value<0.05))
+dim(topTable(eB.voom.fit, coef = "probiotic1", sort.by = "p", number = sum(top.table$P.Value<0.05)))
 topTable(eB.voom.fit)
 
-top.mirna = topTable(eB.voom.fit, coef = 2, sort.by = "p", number = 1000)
+top.mirna = top.table
 top.mirna = rownames(top.mirna)
+xtable(top.table, digits = 3)
 
 
 

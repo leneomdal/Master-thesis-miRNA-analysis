@@ -1,21 +1,22 @@
-z0 = 1
-a = 0.2
 
 z.alpha = qnorm(0.025, lower.tail = TRUE)
+# Get bootrsapped results
+# bootstrap.models.df = read.csv("Data//bootstrap-models-repeated-folds-10.csv")
+# bootstrap.coeffs.df = read.csv("Data//bootstrap-coefficients-repeated-10.csv")
+# colnames(bootstrap.coeffs.df) = c("(Intercept)", rownames(log.cpm))
+
+#bootstrap.models.df = read.csv("Data//bootstrap-models-extended-innerF10-outerF10-lambda-1se-new.csv")
+bootstrap.models.df = read.csv("Data//bootstrap-models-extended-repeated-folds-10.csv")
+#bootstrap.coeffs.df = read.csv("Data//bootstrap-coefficients-extended-innerF10-outerF10-lambda-1se-new.csv")
+bootstrap.coeffs.df = read.csv("Data//bootstrap-coefficients-extended-repeated-10.csv")
+colnames(bootstrap.coeffs.df)[1:(length(rownames(log.cpm))+1)] = c("(Intercept)", rownames(log.cpm))
+
+# function to comupte beta quantiles
 
 compute.beta.quant = function(a, z0, z.alpha){
   betas = z0 + c( (z0 + z.alpha)/(1-a*(z0 + z.alpha)), (z0 - z.alpha)/(1-a*(z0 - z.alpha)))
   return(pnorm(betas))
 }
-
-
-#betas = b + c( (b + z.alpha)/(1-a*(b+z.alpha)), (b - z.alpha)/(1-a*(b - z.alpha)))
-
-
-# Get bootrsapped results
-bootstrap.models.df = read.csv("Data//bootstrap-models-repeated-folds-10.csv")
-bootstrap.coeffs.df = read.csv("Data//bootstrap-coefficients-repeated-10.csv")
-colnames(bootstrap.coeffs.df) = c("(Intercept)", rownames(log.cpm))
 
 
 # define data frame to store values
@@ -63,31 +64,32 @@ calc.acc.factor = function(held.out.estimates,  n.samples){
 }
 
 
-# # Estimate holding out one sample estimates for all coefficients
-# df.held.out.estimates = data.frame(matrix( nrow = n.samples, ncol = length(orig.coeffs)))
-# colnames(df.held.out.estimates) = colnames(bootstrap.coeffs.df)
-# 
-# 
-# #Lambda sequence for CV
-# lambda.seq = exp(seq(1,-5,length=200))
-# #Times to repeat the CV
-# n.repeat = 10
-# #Define vector of alphas to run cross validation
-# alphas =  seq(0.1, 1, 0.05)
-# #Define number of folds in CV
-# n.folds = 10
-# 
-# set.seed(54)
-# for(i in 1:n.samples){
-#   rep.cv.held.out = repeat.cv.function(mod.matrix[-i,], ad[-i], alphas, lambda.seq, n.repeat, n.folds)
-#   rep.held.out.mod = glmnet(full.mod.matrix[-i,-1], ad[-i], family = "binomial",
-#                          alpha = rep.cv.held.out$alpha, lambda = rep.cv.held.out$lambda)
-#   coeffs.held.out = as.matrix(coef(rep.held.out.mod))
-#   df.held.out.estimates[i,] = as.vector(coeffs.held.out)
-# }
-# write.csv(df.held.out.estimates, file = paste("Data/held-out-estimates.df", ".csv", sep = ""), row.names = FALSE)
+# Estimate holding out one sample estimates for all coefficients
+df.held.out.estimates = data.frame(matrix( nrow = n.samples, ncol = length(orig.coeffs)))
+colnames(df.held.out.estimates) = colnames(bootstrap.coeffs.df)
 
-df.held.out.estimates = read.csv("Data/held-out-estimates.df.csv", check.names = FALSE)
+
+#Lambda sequence for CV
+lambda.seq = exp(seq(1,-5,length=200))
+#Times to repeat the CV
+n.repeat = 10
+#Define vector of alphas to run cross validation
+alphas =  seq(0.1, 1, 0.05)
+#Define number of folds in CV
+n.folds = 10
+
+set.seed(54)
+for(i in 1:n.samples){
+  rep.cv.held.out = repeat.cv.function(mod.matrix.extended[-i,], ad[-i], alphas, lambda.seq, n.repeat, n.folds)
+  rep.held.out.mod = glmnet(mod.matrix.extended[-i,-1], ad[-i], family = "binomial",
+                         alpha = rep.cv.held.out$alpha, lambda = rep.cv.held.out$lambda)
+  coeffs.held.out = as.matrix(coef(rep.held.out.mod))
+  df.held.out.estimates[i,] = as.vector(coeffs.held.out)
+  print(paste("i: ", i))
+}
+write.csv(df.held.out.estimates, file = paste("Data/held-out-estimates-rep-extended.df", ".csv", sep = ""), row.names = FALSE)
+df.held.out.estimates.copy = df.held.out.estimates
+df.held.out.estimates = read.csv("Data/held-out-estimates-rep-extended.df.csv", check.names = FALSE)
 
 for(i in 1:(length(orig.coeffs))){
   a.curr =  calc.acc.factor(df.held.out.estimates[,i], n.samples)
@@ -103,7 +105,7 @@ for(i in 1:(length(orig.coeffs))){
   df.confint.params$u.quantile[i] = quantile(bootstrap.coeffs.df[,i], probs = beta2)
 }
 
-write.csv(df.confint.params, file = paste("Data/confint-boot-params", ".csv", sep = ""), row.names = FALSE)
+#write.csv(df.confint.params, file = paste("Data/confint-boot-params-rep-extended", ".csv", sep = ""), row.names = FALSE)
 
 # Check for miRNAs with confidence inetrvals not containing 0
 for(i in 1:length(orig.coeffs)){
@@ -115,12 +117,21 @@ for(i in 1:length(orig.coeffs)){
   }
 }
 
-rownames(df.confint.params) = colnames(bootstrap.coeffs.df)
-
-df.confint.params.included = df.confint.params[names.final.coeffs,]
-
 
 # plot confidence interval
+df.confint.params = read.csv("Data/confint-boot-params-rep-extended.csv")
 
-ggplot(data = final.coeffs.boot.long[], aes(x = miRNA, y = coeffs)) + geom_boxplot()
 
+rownames(df.confint.params) = colnames(bootstrap.coeffs.df)
+df.confint.params.included = df.confint.params[names.final.coeffs,]
+
+bca.df = data.frame(coeffs = rownames(df.confint.params.included), 
+                                    upper = df.confint.params.included$u.quantile, 
+                                    lower = df.confint.params.included$l.quantile)
+ggplot(data = bca.df[-1,], aes(x = coeffs)) + geom_hline(yintercept = 0, color = "white") + 
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = .38) +
+  xlab(NULL) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+                     panel.grid = element_blank()) +
+  ggtitle("Bias corrected accelerated confidence intervals")
+
+xtable(df.confint.params.included, digits = 3)

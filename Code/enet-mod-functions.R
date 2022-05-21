@@ -33,7 +33,7 @@ repeat.cv.function = function(mod.matrix, response, alphas, lambda.seq, n.repeat
       cv.mean.error = c(cv.mean.error, repeated.cv$cvm)
     }
     rep.cv.df[,i + 2] = cv.mean.error
-    print(paste("repetition:", i))
+    #print(paste("repetition:", i))
   }
   
   # Find alpha lambda pair with smallest mean deviation over all repetitions
@@ -116,7 +116,7 @@ nested.cv.alpha = function(mod.matrix, response.var, n.folds.outer, n.folds.inne
   }
   cv.alpha.df = data.frame(matrix(nrow = length(alphas), ncol = 2))
   colnames(cv.alpha.df) = c("alpha", "deviance")
-  tic()
+  
   for(j in seq_along(alphas)){                             # for each alpha run nested CV
     #print(paste("alpha:", alphas[j], "___________________________"))
     dev = 0
@@ -142,7 +142,6 @@ nested.cv.alpha = function(mod.matrix, response.var, n.folds.outer, n.folds.inne
     cv.alpha.df[j,] = c(alphas[j], dev/nrow.mod.matrix)   # store average deviance across folds
     # together with its alpha value
   }
-  toc()
   print("im here")
   return(cv.alpha.df)
 }

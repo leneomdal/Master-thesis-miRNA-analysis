@@ -23,7 +23,7 @@ rownames(sample.col) = colnames(log.cpm)
 log.cpm.top.mirna = log.cpm[top.mirna,]
 
 # drop one sample, sample "149" which is at place 39 !QUICK FIX!
-log.cpm.top.mirna = log.cpm.top.mirna[,-39]
+#log.cpm.top.mirna = log.cpm.top.mirna[,-39]
 
 
 # calculate correlation between miRNAs and samples

@@ -13,6 +13,10 @@ keep = rowSums(cpm(dge.full)>1)>=10
 dge.full$counts = dge.full$counts[keep,]
 
 
+#before 3.953889e+02   lib: 844738 norm: 1.1440386 
+#after 3.456080e+02
+
+
 # Check for identical miRNAs that should be merged into one
 #equal.mirnas = data.frame(V1 = c(0,0))
 #i = 1
@@ -36,7 +40,7 @@ rownames(dge.full$counts)[c(160, 426, 444, 449, 450, 461)] = c("miR-199a/b-3p",
 dge = dge.full[-c(161, 428, 445, 463, 470, 456, 458, 466, 467, 462),]
 
 # normalize using TMM normalization
-dge = calcNormFactors(dge, method = "TMM")
+dge = calcNormFactors(dge, method = "TMM", refColumn = 1)
 #Convert to cpm using TMM norm factors
 cpm <- cpm(dge)
 
