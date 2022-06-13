@@ -31,7 +31,7 @@ In the exploratory clustering analysis we use hierarchical clustering with eucli
 
 The probiotic supplement is associated with differential expression of one microRNA, $miR\text{-}577$, when taking into account the multiplicity of tests by controlling the false discovery rate at $10\%$ using the Benjamini and hochberg method.
 In total, $47$ microRNAs have a raw $p$-value below $0.05$ but except for $miR\text{-}577$ none of them have an acceptable false discovery rate adjusted $p$-value. 
-The five microRNAs, $miR$-$342\text{-}3p, miR\text{-}3605\text{-}3p,\\miR\text{-}500a/b\text{-}5p, miR\text{-}625\text{-}3p$ and $miR$-$6515\text{-}5p$, are associated with development of atopic dermatitis. 
+The five microRNAs, $miR$-$342\text{-}3p, miR\text{-}3605\text{-}3p,miR\text{-}500a/b\text{-}5p, miR\text{-}625\text{-}3p$ and $miR$-$6515\text{-}5p$, are associated with development of atopic dermatitis. 
 The microRNA $miR$-$3605\text{-}3p$ is also one of the microRNAs with a raw $p$-value below $0.05$ in the analysis of the effect of probiotics.
 The cluster analysis groups $miR$-$3605\text{-}3p$, $miR$-$6515\text{-}5p$ and $miR$-$577$ together, indicating that they are highly correlated. 
 Thus, the probiotic supplement affects one microRNA, and five microRNAs are found to be associated with atopic dermatitis in breast milk at $10$ days postpartum.
