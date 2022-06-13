@@ -19,7 +19,7 @@ library(edgeR)
 
 
 # Define design matrices
-design.matrix = model.matrix(~ probiotic + ad + matatopy  + sex , data = metadata.df) # adjusting for ad
+design.matrix = model.matrix(~ probiotic + ad + matatopy + sex, data = metadata.df) # adjusting for ad
 design.matrix.all = model.matrix(~probiotic + ad + matatopy + ad*probiotic, data = metadata.df)
 design.matrix.intr = model.matrix(~probiotic + ad + probiotic*ad, data = metadata.df)
 
@@ -32,6 +32,7 @@ eB.voom.fit = eBayes(voom.fit, robust = FALSE)
 
 svg("C:\\Users\\Lene\\repositories\\master-thesis-latex\\figures\\mean-variance-trend-by-voom.svg")
 voom.weights = voom(dge, design.matrix, plot=TRUE)
+lines(c(-0.7,15.7), c(0.8017527,0.8017527), type="l", lty=2, col = "blue")
 # Close the graphics device
 dev.off() 
 
@@ -46,15 +47,8 @@ dev.off()
 
 # RESULTING TOP MIRNA FROM VOOM
 
-top.table = topTable(eB.voom.fit, coef = "probiotic1", sort.by = "p", number = 100)
-top.table
-top.table[rownames(top.table) %in% names.final.coeffs[-1],]
-dim(topTable(eB.voom.fit, coef = "probiotic1", sort.by = "p", number = sum(top.table$P.Value<0.05)))
-topTable(eB.voom.fit)
-
-top.mirna = top.table
-top.mirna = rownames(top.mirna)
-xtable(top.table, digits = 3)
+top.table = topTable(eB.voom.fit, coef = "probiotic1", sort.by = "p", number = 50)
+#xtable(top.table, digits = 3)
 
 
 
@@ -68,15 +62,6 @@ topTable(fit.vanilla)
 
 s_0 = fit.vanilla$s2.prior
 d_0 = fit.vanilla$df.prior
-
-
-col.group = as.factor(groups_sex)
-levels(col.group) =  brewer.pal(nlevels(col.group), "Set1")
-col.group = as.character(col.group)
-plotMDS(log.cpm, labels=groups_sex, col=col.group)
-title(main="MDS plot")
-
-
 
 
 

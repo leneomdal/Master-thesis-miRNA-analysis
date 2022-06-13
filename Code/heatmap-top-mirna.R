@@ -1,4 +1,4 @@
-# CREATE HEATMAPS USING ONLY TOP MIRNA FROM NEW VOOM ANALYSIS
+# CREATE HEATMAPS USING ONLY TOP MIRNA FROM VOOM ANALYSIS
 source("Code//voom-analysis.R")
 library(pheatmap)
 library(RColorBrewer)
@@ -73,7 +73,7 @@ pheatmap(log.cpm.top.mirna, scale = "row", border_color = NA,
          show_colnames = FALSE,
          main = "Heatmap of top miRNA using 1 - correlation distance",
          fontsize = 7)
-# euclidean
+# Euclidean
 pheatmap(log.cpm.top.mirna, scale = "row", border_color = NA, clustering_distance_rows = "euclidean",
          clustering_distance_cols = "euclidean",
          clustering_method = "ward.D2", annotation_col = sample.col, annotation_colors = ann.colors, show_rownames = TRUE,
@@ -82,6 +82,6 @@ pheatmap(log.cpm.top.mirna, scale = "row", border_color = NA, clustering_distanc
          fontsize = 7)
 
 
-# create hclust object (current: correlation based distance)
+# Create hclust object (current: correlation based distance)
 clust.s.top = hclust(as.dist(1-(cor.samples.top)), method = "ward.D2")
 plot(clust.s.top)

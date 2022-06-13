@@ -12,7 +12,7 @@ as.dendrogram(clust.s.top) %>% plot()
 plot(clust.s.abs.cor)
 
 
-# Function for extracting intormation about the samples in each cluster
+# Function for extracting information about the samples in each cluster
 get.table.summary.clust = function(hclust.obj, k){
   clusters = cutree(tree = as.dendrogram(hclust.obj), k = k)
   table.df = data.frame(probiotic = rep(0, k))
@@ -41,7 +41,7 @@ table.top = get.table.summary.clust(clust.s.top, k = 3)
 
 
 # compare clusters of euclid and cor distance
-mirna.clusters.cor = cutree(tree = as.dendrogram(clust.m.cor), k = 2)
+mirna.clusters.cor = cutree(tree = as.dendrogram(clust.m.cor), k = 4)
 mirna.cluster.euclid = cutree(tree = as.dendrogram(clust.m.euclid), k = 2)
 cluster.2.mirna.cor = which(mirna.clusters.cor == 2) 
 cluster.2.mirna.euclid = which(mirna.cluster.euclid == 2)
@@ -54,6 +54,16 @@ for(elm in cluster.2.mirna.euclid){
     
   }
 }
-difference
+
 length(cluster.2.mirna.cor)
 length(cluster.2.mirna.euclid)
+
+intrest = c("miR-342-3p", "miR-3605-3p","miR-500a/b-5p", "miR-625-3p", "miR-6515-5p", "miR-577")
+cluster = list()
+for(i in 1:4){
+  cluster[[i]]= names(mirna.clusters.cor[mirna.clusters.cor == i])
+  print(paste("cluster", i))
+  for(j in intrest){
+    if(j %in% cluster[[i]]){
+      print(j)}}
+  }

@@ -7,7 +7,7 @@ if(!require(stringr)){
   library(stringr)
 }
 
-print("Hola girl ex")
+
 
 project.dir = "Master-thesis-miRNA-analysis"
 reg = regexpr(pattern = project.dir, getwd())
@@ -57,34 +57,35 @@ alphas =  seq(0.1, 1, 0.05)
 #Define number of folds in CV
 n.folds = 10
 
+
+
 set.seed(345)
-tic()
 repeated.cv.results = repeat.cv.function(mod.matrix.extended, ad, alphas, lambda.seq, n.repeat, n.folds)
-toc()
 actual.rep.enet.model = glmnet(mod.matrix.extended[,-1], ad, family = "binomial",
-                           alpha = repeated.cv.results$alpha, lambda = repeated.cv.results$lambda)
+                            alpha = repeated.cv.results$alpha, lambda = repeated.cv.results$lambda)
+
 
 coeffs.actual.mod.rep = as.matrix(coef(actual.rep.enet.model))
 names.final.coeffs.rep = str_remove_all(names(as.matrix(coeffs.actual.mod.rep)[as.vector(coeffs.actual.mod.rep) != 0,]), "`")
 #xtable(as.matrix(coeffs.actual.mod.rep[as.vector(coeffs.actual.mod.rep) != 0,]))
 
 
-# 
-# 
-# # BOOTSTRAP REPEATED CV
-# 
-# #Define number of bootstrap samples
-# n.boot = 1000
-# set.seed(678)
-# boot.repeated.df = bootstrap.repeated.cv(log.cpm.extended, mod.matrix.extended, ad, 
-#                                          alphas,lambda.seq, n.boot, n.repeat, n.folds)
-# 
-# #Save data from bootstrap
-# write.csv(boot.repeated.df[[2]], file = paste("Data/bootstrap-models-extended-repeated-folds-",
-#                                               n.folds,".csv",sep = ""), row.names = FALSE)
-# write.csv(boot.repeated.df[[1]], file = paste("Data/bootstrap-coefficients-extended-repeated-",
-#                                               n.folds, ".csv", sep = ""), row.names = FALSE)
-# 
+
+
+# BOOTSTRAP REPEATED CV
+
+#Define number of bootstrap samples
+n.boot = 1000
+set.seed(678)
+boot.repeated.df = bootstrap.repeated.cv(log.cpm.extended, mod.matrix.extended, ad,
+                                         alphas,lambda.seq, n.boot, n.repeat, n.folds)
+
+#Save data from bootstrap
+write.csv(boot.repeated.df[[2]], file = paste("Data/bootstrap-models-extended-repeated-folds-",
+                                              n.folds,".csv",sep = ""), row.names = FALSE)
+write.csv(boot.repeated.df[[1]], file = paste("Data/bootstrap-coefficients-extended-repeated-",
+                                              n.folds, ".csv", sep = ""), row.names = FALSE)
+
 
 #----------------------NESTED CV-------------------------------------------------
 
@@ -97,38 +98,26 @@ n.folds.outer = 10
 lambda.type = "lambda.1se"
 alphas =  seq(0.1, 1, 0.05)
 
-#______________________
-
-# alpha.test.nest = c()
-# for(i in seq_len(50)){
-#   nested.cv.alpha.df = nested.cv.alpha(full.mod.matrix, ad, n.folds.outer, n.folds.inner, alphas, lambda.type = lambda.type)
-#   
-#   best.alpha.nested = nested.cv.alpha.df$alpha[nested.cv.alpha.df$deviance == min(nested.cv.alpha.df$deviance)]
-#   alpha.test.nest[i] = best.alpha.nested
-# }
-# 
-# #write.csv(alpha.test.nest, file = "Data/alpha-test-nest.csv")
-# test = read.csv("Data/alpha-test-nest.csv")
-# View(test)
-# hist(test$x)
-#____________________
 
 
 # RUN for actual model fit
 
 set.seed(2345)
-tic()
+
 nested.cv.alpha.df = nested.cv.alpha(mod.matrix.extended, ad, n.folds.outer, n.folds.inner,
-                                     alphas, lambda.type = lambda.type)
+                                       alphas, lambda.type = lambda.type)
 best.alpha.nested = nested.cv.alpha.df$alpha[nested.cv.alpha.df$deviance == min(nested.cv.alpha.df$deviance)]
 final.model.cv = cv.glmnet(mod.matrix.extended[,-1], ad, family = "binomial", alpha = best.alpha.nested)
-toc()
+
+
 plot(final.model.cv$glmnet.fit, xvar = "lambda", label = TRUE)
 
 
 coeffs.final.mod = as.matrix(coef(final.model.cv, s = lambda.type))
 names.final.coeffs = str_remove_all(names(as.matrix(coeffs.final.mod)[as.vector(coeffs.final.mod) != 0,]), "`")
-as.matrix(coeffs.final.mod)[as.vector(coeffs.final.mod) != 0,]
+xtable(as.matrix(coeffs.final.mod[as.vector(coeffs.final.mod) != 0,], digits = 3))
+#xtable(as.matrix(coeffs.actual.mod.rep[as.vector(coeffs.actual.mod.rep) != 0,]))
+
 
 
 # BOOTSTRAP NESTED CV

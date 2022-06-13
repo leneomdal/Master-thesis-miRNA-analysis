@@ -1,5 +1,7 @@
 source("Code//normalize-and-filter.R")
+source("Code//voom-analysis.R")
 library(svglite)
+library(boot)
 #source("Testing//hierarchical-clustering-functions.R")
 plot(rowMeans(count.df))
 plot(rowMeans(cpm))
@@ -105,6 +107,12 @@ curve(1/(d_0*s_0^2)*dchisq(x, df = d_0), from = 0, to = 40)
 plotSA(eB.voom.fit, main="Mean variance points and prior variance")
 ?plotSA
 
+plot(mean.mirnas.df$mean, sqrt(sqrt(var.mirnas.df$var)))
+means.vars.df = data.frame(mean = mean.mirnas.df$mean , var = var.mirnas.df$var )
+
+ggplot(data = means.vars.df, aes(x = mean , y = sqrt(sqrt(var)))) + geom_point() +
+  ggtitle("Mean-variance relationship of log cpm values") + xlab("log cpm mean of miRNAs") + ylab("Sqrt(standard deviation)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
 
 # correlation plot
 
@@ -178,3 +186,25 @@ dev.off()
 
 (metadata.df$sens2yr == 1 & metadata.df$probiotic == 0)
 
+
+# repeat CV null model
+# Function for calculating deviance for null
+find.dev.null = function( truth, pred){
+  dev = -2*(truth %*% log(pred) + (1 - truth) %*% log(1 - pred))
+  return(dev)
+}
+
+repeat.cv.function.null = function(mod.matrix, log.cpm.ad, response, n.repeat, n.folds){
+
+  cv.error = c()
+  for(i in seq_len(n.repeat)){
+    glm.null = glm(AD~1, family = "binomial", data = log.cpm.ad)
+    cv.null = cv.glm(log.cpm.ad, glm.null, cost = find.dev.null, K = 10)
+    cv.error = c(cv.error, cv.null$delta[1])
+  }
+  return(sum(cv.error)/60)
+}
+
+null = repeat.cv.function.null(matrix(mod.matrix.extended[,1:1], ncol = 1), 
+                               log.cpm.ad, ad, n.repeat, n.folds)
+null
