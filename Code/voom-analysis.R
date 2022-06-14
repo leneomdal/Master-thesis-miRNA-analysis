@@ -49,6 +49,8 @@ dev.off()
 
 top.table = topTable(eB.voom.fit, coef = "probiotic1", sort.by = "p", number = 50)
 #xtable(top.table, digits = 3)
+top.mirna = topTable(eB.voom.fit, coef = "probiotic1", sort.by = "p", number = 20)
+top.mirna = rownames(top.mirna)
 
 
 
