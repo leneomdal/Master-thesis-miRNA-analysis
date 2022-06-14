@@ -63,7 +63,7 @@ pheatmap(log.cpm.top.mirna, scale = "row", border_color = NA,
          clustering_distance_cols = as.dist(1- abs(cor.samples.top)), 
          clustering_method = "ward.D2", annotation_col = sample.col, annotation_colors = ann.colors, show_rownames = TRUE,
          show_colnames = FALSE,
-         main = "Heatmap of top miRNA using 1 - abs(correlation) distance",
+         main = "Heatmap of the 20 top miRNAs using 1 - abs(correlation) distance",
          fontsize = 7)
 # 1-corr
 pheatmap(log.cpm.top.mirna, scale = "row", border_color = NA, 
@@ -71,14 +71,14 @@ pheatmap(log.cpm.top.mirna, scale = "row", border_color = NA,
          clustering_distance_cols = as.dist(1- (cor.samples.top)), 
          clustering_method = "ward.D2", annotation_col = sample.col, annotation_colors = ann.colors, show_rownames = TRUE,
          show_colnames = FALSE,
-         main = "Heatmap of top miRNA using 1 - correlation distance",
+         main = "Heatmap of the top 20 miRNAs using 1 - correlation distance",
          fontsize = 7)
 # Euclidean
 pheatmap(log.cpm.top.mirna, scale = "row", border_color = NA, clustering_distance_rows = "euclidean",
          clustering_distance_cols = "euclidean",
          clustering_method = "ward.D2", annotation_col = sample.col, annotation_colors = ann.colors, show_rownames = TRUE,
          show_colnames = FALSE,
-         main = "Heatmap of top miRNA using euclidean distance",
+         main = "Heatmap of the top 20 miRNAs using euclidean distance",
          fontsize = 7)
 
 
